@@ -2,129 +2,114 @@
 
 import { Button } from "@/components/ui/button"
 import { Icon } from "@iconify/react"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 
 export function Header() {
   const [menuOpen, setMenuOpen] = useState(false)
 
-  return (
-    <header className="sticky top-0 z-50 w-full border-b border-border flex justify-center bg-white px-10">
-      <div className="container flex h-16 items-center justify-between">
-        <div className="flex items-center gap-8">
-          <a href="/" className="flex items-center">
-            <img
-              src="/logo-mavellium.svg"
-              alt="Mavellium"
-              width={180}
-              height={40}
-              className="object-contain"
-            />
-          </a>
+  // Fecha o menu quando a tela aumenta para desktop
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 768) setMenuOpen(false)
+    }
+    window.addEventListener("resize", handleResize)
+    return () => window.removeEventListener("resize", handleResize)
+  }, [])
 
+  // Fecha ao clicar fora
+  useEffect(() => {
+    const handleClick = (e: any) => {
+      if (!menuOpen) return
+      if (!document.getElementById("mobileMenu")?.contains(e.target)) {
+        setMenuOpen(false)
+      }
+    }
+    window.addEventListener("click", handleClick)
+    return () => window.removeEventListener("click", handleClick)
+  }, [menuOpen])
+
+  return (
+    <header className="sticky top-0 z-50 w-full border-b border-white border-border flex justify-center bg-black px-6">
+      <div className="container flex h-16 items-center justify-between">
+        {/* Navegação Desktop */}
+        <div className="flex items-center gap-8">
           <nav className="hidden md:flex gap-6">
-            <a
-              href="/"
-              className="text-sm font-medium text-black hover:text-foreground transition-colors"
-            >
+            <a href="/" className="text-sm font-medium text-white hover:text-gray-300 transition">
               Home
             </a>
-            <a
-              href="/Servicos"
-              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-            >
-              Serviços
-            </a>
-            <a
-              href="/Sobre"
-              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-            >
-              Sobre
-            </a>
-            <a
-              href="/Contato"
-              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-            >
-              Contato
+            <a href="/Solucoes" className="text-sm font-medium text-gray-300 hover:text-white transition">
+              Soluções
             </a>
           </nav>
         </div>
 
+        {/* Botão WhatsApp Desktop */}
         <div className="hidden md:flex">
           <a
-            href="https://api.whatsapp.com/send?phone=5514991779502&text=Ol%C3%A1!%20Gostaria%20de%20saber%20mais%20sobre%20os%20servi%C3%A7os%20de%20desenvolvimento%20web%20da%20empresa.%20Poderiam%20me%20passar%20mais%20informa%C3%A7%C3%B5es%20sobre%20as%20solu%C3%A7%C3%B5es%2C%20tecnologias%20e%20valores%20dispon%C3%ADveis%3F"
+            href="https://api.whatsapp.com/send?phone=5514991779502"
             target="_blank"
-            rel="noopener noreferrer"
-            className="flex gap-2 justify-center items-center cursor-pointer"
+            className="flex gap-2 items-center"
           >
-            <Button className="shadow-lg shadow-primary/20 bg-[#008E52] hover:bg-[#017346] cursor-pointer transition-all hover:scale-105">
+            <Button className="shadow-lg bg-[#0C8BD2] hover:bg-[#0B6496] transition">
               <img src="/ic_baseline-whatsapp.svg" className="w-6" />
               Fale com a gente
             </Button>
           </a>
         </div>
 
-        {/* Botão do menu mobile */}
+        {/* Botão Mobile */}
         <Button
           size="icon"
           variant="ghost"
-          className="md:hidden"
-          onClick={() => setMenuOpen(!menuOpen)}
+          className="md:hidden text-white"
+          onClick={(e) => {
+            e.stopPropagation()
+            setMenuOpen(!menuOpen)
+          }}
         >
           <Icon
             icon={menuOpen ? "solar:close-circle-linear" : "solar:hamburger-menu-outline"}
-            className="size-6"
+            className="size-6 text-white"
           />
         </Button>
       </div>
 
       {/* Menu Mobile */}
-      {menuOpen && (
-        <div className="md:hidden absolute top-16 left-0 w-full bg-white border-t border-border shadow-md z-40">
-          <nav className="flex flex-col items-center py-4 space-y-4">
-            <a
-              href="/"
-              className="text-base font-medium text-black hover:text-[#008E52] transition-colors"
-              onClick={() => setMenuOpen(false)}
-            >
-              Home
-            </a>
-            <a
-              href="/Servicos"
-              className="text-base font-medium text-black hover:text-[#008E52] transition-colors"
-              onClick={() => setMenuOpen(false)}
-            >
-              Serviços
-            </a>
-            <a
-              href="/Sobre"
-              className="text-base font-medium text-black hover:text-[#008E52] transition-colors"
-              onClick={() => setMenuOpen(false)}
-            >
-              Sobre
-            </a>
-            <a
-              href="/Contato"
-              className="text-base font-medium text-black hover:text-[#008E52] transition-colors"
-              onClick={() => setMenuOpen(false)}
-            >
-              Contato
-            </a>
+      <div
+        id="mobileMenu"
+        className={`fixed top-16 left-0 w-full bg-white shadow-xl z-50 transform transition-all duration-300 md:hidden
+        ${menuOpen ? "translate-y-0 opacity-100" : "-translate-y-10 opacity-0 pointer-events-none"}`}
+      >
+        <nav className="flex flex-col items-center py-6 space-y-5">
+          <a
+            href="/"
+            className="text-lg font-medium text-black hover:text-[#008E52] transition"
+            onClick={() => setMenuOpen(false)}
+          >
+            Home
+          </a>
+          <a
+            href="/Servicos"
+            className="text-lg font-medium text-black hover:text-[#008E52] transition"
+            onClick={() => setMenuOpen(false)}
+          >
+            Soluções
+          </a>
+          
 
-            <a
-              href="https://api.whatsapp.com/send?phone=5514991779502&text=Ol%C3%A1!%20Gostaria%20de%20saber%20mais%20sobre%20os%20servi%C3%A7os%20de%20desenvolvimento%20web%20da%20empresa.%20Poderiam%20me%20passar%20mais%20informa%C3%A7%C3%B5es%20sobre%20as%20solu%C3%A7%C3%B5es%2C%20tecnologias%20e%20valores%20dispon%C3%ADveis%3F"
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={() => setMenuOpen(false)}
-              className="flex gap-2 justify-center items-center"
-            >
-              <Button className="shadow-lg shadow-primary/20 bg-[#008E52] hover:bg-[#017346] transition-all hover:scale-105">
-                <img src="/ic_baseline-whatsapp.svg" className="w-6" />
-                Fale com a gente
-              </Button>
-            </a>
-          </nav>
-        </div>
-      )}
+          <a
+            href="https://api.whatsapp.com/send?phone=5514991779502"
+            target="_blank"
+            className="flex gap-2 items-center"
+            onClick={() => setMenuOpen(false)}
+          >
+            <Button className="bg-[#0C8BD2] hover:bg-[#0B6496] transition">
+              <img src="/ic_baseline-whatsapp.svg" className="w-6" />
+              Fale com a gente
+            </Button>
+          </a>
+        </nav>
+      </div>
     </header>
   )
 }
