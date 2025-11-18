@@ -11,42 +11,42 @@ const ExploreDetails = () => {
   const buttonsRef = useRef<(HTMLButtonElement | null)[]>([]);
   const titlesRef = useRef<(HTMLHeadingElement | null)[]>([]);
   const descriptionsRef = useRef<(HTMLParagraphElement | null)[]>([]);
-  
+
   const features = [
     {
       id: 1,
       title: "Chip M3",
-      description: "O mais avançado chip para um computador pessoal, com CPU de até 16 núcleos e GPU de até 40 núcleos.",
+      description: "O mais avançado chip para um computador pessoal...",
       image: "/explore-bg.png",
-      specs: ["CPU até 16 núcleos", "GPU até 40 núcleos", "Neural Engine de 16 núcleos", "Até 128GB de memória unificada"]
+      specs: ["CPU até 16 núcleos", "GPU até 40 núcleos", "Neural Engine de 16 núcleos", "Até 128GB de memória"]
     },
     {
       id: 2,
       title: "Tela Liquid Retina XDR",
-      description: "A melhor tela ever em um notebook. Com Extreme Dynamic Range e brilho máximo de 1.600 nits.",
+      description: "A melhor tela ever em um notebook...",
       image: "/explore-bg.png",
-      specs: ["14.2″ ou 16.2″", "Até 1.600 nits de pico", "ProMotion até 120Hz", "Resolução 3024x1964"]
+      specs: ["14.2″ ou 16.2″", "Até 1.600 nits", "ProMotion 120Hz", "Resolução 3024x1964"]
     },
     {
       id: 3,
       title: "Bateria para o dia todo",
-      description: "Até 22 horas de reprodução de vídeo. Energia suficiente para suas tarefas mais importantes.",
+      description: "Até 22 horas de reprodução de vídeo...",
       image: "/explore-bg.png",
-      specs: ["Até 22 horas de vídeo", "Carregamento rápido", "Gestão inteligente de energia", "Bateria de lítio"]
+      specs: ["Até 22 horas", "Carregamento rápido", "Gestão inteligente", "Bateria de lítio"]
     },
     {
       id: 4,
       title: "Conectividade avançada",
-      description: "Wi-Fi 6E, Thunderbolt 4, HDMI e MagSafe 3. Tudo que você precisa para conectar seus dispositivos.",
+      description: "Wi-Fi 6E, Thunderbolt 4, HDMI e MagSafe 3...",
       image: "/explore-bg.png",
-      specs: ["3 portas Thunderbolt 4", "Porta HDMI", "MagSafe 3", "Wi-Fi 6E", "Leitor SDXC"]
+      specs: ["3x Thunderbolt 4", "HDMI", "MagSafe 3", "Wi-Fi 6E", "Leitor SDXC"]
     },
     {
       id: 5,
       title: "Sistema de áudio",
-      description: "Alto-falantes de alta fidelidade com suporte para áudio espacial. O som mais imersivo em um notebook.",
+      description: "Alto-falantes com áudio espacial...",
       image: "/explore-bg.png",
-      specs: ["Sistema de alto-falantes", "Áudio espacial", "Gravação em estúdio", "Cancelamento ativo de ruído"]
+      specs: ["Alto-falantes", "Áudio espacial", "Gravação pro", "Cancelamento de ruído"]
     }
   ];
 
@@ -61,7 +61,7 @@ const ExploreDetails = () => {
           ease: "power2.out"
         });
       }
-      
+
       if (titlesRef.current[index]) {
         gsap.to(titlesRef.current[index], {
           opacity: 1,
@@ -70,7 +70,7 @@ const ExploreDetails = () => {
           ease: "power2.out"
         });
       }
-      
+
       if (descriptionsRef.current[index]) {
         gsap.to(descriptionsRef.current[index], {
           opacity: 0,
@@ -84,13 +84,10 @@ const ExploreDetails = () => {
 
   const handleFeatureChange = (index: number) => {
     if (index === activeFeature || isTransitioning) return;
-    
-    setIsTransitioning(true);
 
-    // Reset todos os botões primeiro
+    setIsTransitioning(true);
     resetAllButtons();
 
-    // Timeline para o novo botão ativo
     const tl = gsap.timeline({
       onComplete: () => {
         setActiveFeature(index);
@@ -98,9 +95,7 @@ const ExploreDetails = () => {
       }
     });
 
-    // Animar o novo botão
     if (buttonsRef.current[index]) {
-      // Fade out do título
       if (titlesRef.current[index]) {
         tl.to(titlesRef.current[index], {
           opacity: 0,
@@ -110,7 +105,6 @@ const ExploreDetails = () => {
         }, 0);
       }
 
-      // Expandir altura
       tl.to(buttonsRef.current[index], {
         height: "auto",
         minHeight: "200px",
@@ -118,14 +112,12 @@ const ExploreDetails = () => {
         ease: "back.out(1.7)"
       }, 0.1);
 
-      // Scale
       tl.to(buttonsRef.current[index], {
         scale: 1.05,
         duration: 0.3,
         ease: "power2.out"
       }, 0.3);
 
-      // Fade in do conteúdo
       if (descriptionsRef.current[index]) {
         tl.to(descriptionsRef.current[index], {
           opacity: 1,
@@ -139,84 +131,39 @@ const ExploreDetails = () => {
 
   const handleCloseFeature = () => {
     if (activeFeature === -1 || isTransitioning) return;
-    
-    setIsTransitioning(true);
 
-    const tl = gsap.timeline({
+    setIsTransitioning(true);
+    gsap.timeline({
       onComplete: () => {
         setActiveFeature(-1);
         setIsTransitioning(false);
       }
     });
-
-    // Reset todos os botões
     resetAllButtons();
   };
 
   const handlePrevious = () => {
-    if (features.length === 0) return;
-    
-    if (activeFeature === -1) {
-      handleFeatureChange(features.length - 1);
-    } else {
-      const newIndex = activeFeature > 0 ? activeFeature - 1 : features.length - 1;
-      handleFeatureChange(newIndex);
-    }
+    const newIndex =
+      activeFeature === -1
+        ? features.length - 1
+        : activeFeature > 0
+        ? activeFeature - 1
+        : features.length - 1;
+
+    handleFeatureChange(newIndex);
   };
 
   const handleNext = () => {
-    if (features.length === 0) return;
-    
-    if (activeFeature === -1) {
-      handleFeatureChange(0);
-    } else {
-      const newIndex = activeFeature < features.length - 1 ? activeFeature + 1 : 0;
-      handleFeatureChange(newIndex);
-    }
+    const newIndex =
+      activeFeature === -1
+        ? 0
+        : activeFeature < features.length - 1
+        ? activeFeature + 1
+        : 0;
+
+    handleFeatureChange(newIndex);
   };
 
-  // Efeito hover nos botões
-  useEffect(() => {
-    const handleMouseEnter = (index: number) => {
-      if (index !== activeFeature && buttonsRef.current[index]) {
-        gsap.to(buttonsRef.current[index], {
-          scale: 1.02,
-          duration: 0.3,
-          ease: "power2.out"
-        });
-      }
-    };
-
-    const handleMouseLeave = (index: number) => {
-      if (index !== activeFeature && buttonsRef.current[index]) {
-        gsap.to(buttonsRef.current[index], {
-          scale: 1,
-          duration: 0.3,
-          ease: "power2.out"
-        });
-      }
-    };
-
-    // Adicionar event listeners
-    buttonsRef.current.forEach((button, index) => {
-      if (button) {
-        button.addEventListener('mouseenter', () => handleMouseEnter(index));
-        button.addEventListener('mouseleave', () => handleMouseLeave(index));
-      }
-    });
-
-    // Cleanup
-    return () => {
-      buttonsRef.current.forEach((button, index) => {
-        if (button) {
-          button.removeEventListener('mouseenter', () => handleMouseEnter(index));
-          button.removeEventListener('mouseleave', () => handleMouseLeave(index));
-        }
-      });
-    };
-  }, [activeFeature]);
-
-  // Inicializar opacidades
   useEffect(() => {
     buttonsRef.current.forEach((_, index) => {
       if (titlesRef.current[index]) {
@@ -232,33 +179,28 @@ const ExploreDetails = () => {
   }, []);
 
   return (
-    <section className="common-padding bg-[#1D1D1F] py-20 px-60">
+    <section className="common-padding bg-[#1D1D1F] py-20 px-6 md:px-12 lg:px-0">
       <div className="screen-max-width">
-        <div className="mb-7 w-full text-start">
-          <h1 className="text-5xl font-bold text-white">
-            Explore os detalhes.
-          </h1>
-        </div>
+        <h1 className="text-4xl lg:text-5xl font-bold text-white mb-10">
+          Explore os detalhes.
+        </h1>
 
-        <div className="flex flex-col lg:flex-row gap-8 items-center bg-black rounded-4xl p-10">
-          {/* Container para setas e navegação lateral */}
-          <div className="flex items-center gap-4 lg:w-1/4 w-full">
-            {/* Setas de navegação em coluna */}
+        {/* DESKTOP ORIGINAL (setas para cima/baixo) */}
+        <div className="hidden lg:flex flex-row gap-8 items-center bg-black rounded-4xl p-10">
+          <div className="flex items-center gap-4 w-1/4">
             <div className="flex flex-col gap-4 mt-2">
               <Button
                 onClick={handlePrevious}
-                className="w-10 h-10 flex items-center justify-center rounded-full bg-[#1E1E20] hover:bg-[#1E1E20]/50 transition-colors"
-                aria-label="Item anterior"
+                className="w-10 h-10 flex items-center justify-center rounded-full bg-[#1E1E20] hover:bg-[#1E1E20]/80 transition-colors"
               >
                 <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
                 </svg>
               </Button>
-              
+
               <Button
                 onClick={handleNext}
-                className="w-10 h-10 flex items-center justify-center rounded-full bg-[#1E1E20] hover:bg-[#1E1E20]/50 transition-colors"
-                aria-label="Próximo item"
+                className="w-10 h-10 flex items-center justify-center rounded-full bg-[#1E1E20] hover:bg-[#1E1E20]/80 transition-colors"
               >
                 <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -266,43 +208,32 @@ const ExploreDetails = () => {
               </Button>
             </div>
 
-            {/* Navegação lateral */}
             <div className="flex-1">
               <div className="sticky top-24 space-y-4">
                 {features.map((feature, index) => (
                   <button
                     key={feature.id}
-                    ref={el => {buttonsRef.current[index] = el}}
-                    className={`w-full text-left flex flex-col justify-start p-4 rounded-2xl transition-colors duration-300 ${
+                    ref={(el) => {(buttonsRef.current[index] = el)}}
+                    onClick={() => handleFeatureChange(index)}
+                    className={`w-full text-left flex flex-col justify-start p-4 rounded-2xl transition-colors ${
                       activeFeature === index
                         ? "bg-gray-800 border-l-4 border-blue-500"
                         : "bg-gray-800/50 hover:bg-gray-800"
                     }`}
-                    onClick={() => handleFeatureChange(index)}
-                    style={{ 
-                      height: '80px',
-                      minHeight: '80px'
-                    }}
+                    style={{ height: "80px", minHeight: "80px" }}
                   >
                     <h3 
-                      ref={el => {titlesRef.current[index] = el}}
+                      ref={(el) => {(titlesRef.current[index] = el)}}
                       className="font-semibold text-lg text-white flex items-center justify-center"
                     >
                       {feature.title}
                     </h3>
-                    
-                    <div 
-                      ref={el => {descriptionsRef.current[index] = el}}
-                      className="opacity-0"
-                    >
-                      <p className="text-sm text-white mb-3">
-                        {feature.description}
-                      </p>
-                      
-                      {/* Lista de especificações que aparece apenas quando ativo */}
+
+                    <div ref={(el) => {(descriptionsRef.current[index] = el)}} className="opacity-0">
+                      <p className="text-sm text-white mb-3">{feature.description}</p>
                       <ul className="mt-3 space-y-1">
-                        {feature.specs.map((spec, specIndex) => (
-                          <li key={specIndex} className="text-xs text-white">• {spec}</li>
+                        {feature.specs.map((spec, i) => (
+                          <li key={i} className="text-xs text-white">• {spec}</li>
                         ))}
                       </ul>
                     </div>
@@ -312,36 +243,94 @@ const ExploreDetails = () => {
             </div>
           </div>
 
-          {/* Conteúdo principal */}
-          <div className="lg:w-3/4 w-full relative">
-            {/* Botão X para fechar - aparece apenas quando um recurso está ativo */}
+          <div className="w-3/4 relative">
             {activeFeature >= 0 && (
               <Button
                 onClick={handleCloseFeature}
                 className="absolute top-2 right-2 z-10 w-8 h-8 flex items-center justify-center rounded-full bg-gray-800/80 hover:bg-gray-700 transition-colors"
-                aria-label="Fechar detalhes"
               >
                 <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </Button>
             )}
-            
+
             <div className="rounded-3xl overflow-hidden">
               <div className="aspect-video relative bg-black">
-                <div className="absolute inset-0">
-                  <div className="w-full h-full">
-                    <Image
-                      src={activeFeature >= 0 ? features[activeFeature].image : "/explore-bg.png"}
-                      alt={activeFeature >= 0 ? features[activeFeature].title : "Grafico de Dados"}
-                      fill
-                      className="object-cover"
-                      priority
-                    />
-                  </div>
-                </div>
+                <Image
+                  src={activeFeature >= 0 ? features[activeFeature].image : "/explore-bg.png"}
+                  alt="Feature"
+                  fill
+                  className="object-cover"
+                />
               </div>
             </div>
+          </div>
+        </div>
+
+        {/* MOBILE/TABLET - Layout como na imagem (setas laterais com item no meio) */}
+        <div className="lg:hidden bg-black rounded-4xl p-6">
+          {/* Imagem */}
+          <div className="rounded-3xl overflow-hidden mb-6">
+            <div className="aspect-video relative bg-black">
+              <Image
+                src={activeFeature >= 0 ? features[activeFeature].image : "/explore-bg.png"}
+                alt="Feature"
+                fill
+                className="object-cover"
+              />
+            </div>
+          </div>
+
+          {/* Navegação Mobile - Setas laterais com item no meio */}
+          <div className="flex items-center justify-between gap-4">
+            {/* Seta esquerda */}
+            <Button
+              onClick={handlePrevious}
+              className="w-12 h-12 flex items-center justify-center rounded-full bg-[#1E1E20] hover:bg-[#1E1E20]/80 transition-colors flex-shrink-0"
+            >
+              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+            </Button>
+
+            {/* Item do meio - conteúdo do botão atual */}
+            <div className="flex-1 text-center min-h-[60px] flex items-center justify-center">
+              {activeFeature >= 0 ? (
+                <div className="w-full">
+                  <h3 className="font-semibold text-lg text-white mb-2">
+                    {features[activeFeature].title}
+                  </h3>
+                  <p className="text-sm text-gray-300">
+                    {features[activeFeature].description}
+                  </p>
+                </div>
+              ) : (
+                <p className="text-gray-400">Selecione um item</p>
+              )}
+            </div>
+
+            {/* Seta direita */}
+            <Button
+              onClick={handleNext}
+              className="w-12 h-12 flex items-center justify-center rounded-full bg-[#1E1E20] hover:bg-[#1E1E20]/80 transition-colors flex-shrink-0"
+            >
+              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </Button>
+          </div>
+
+          {/* Indicadores de posição (opcional) */}
+          <div className="flex justify-center mt-4 gap-2">
+            {features.map((_, index) => (
+              <div
+                key={index}
+                className={`w-2 h-2 rounded-full transition-colors ${
+                  index === activeFeature ? "bg-white" : "bg-gray-600"
+                }`}
+              />
+            ))}
           </div>
         </div>
       </div>
