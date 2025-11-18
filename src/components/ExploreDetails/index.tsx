@@ -179,7 +179,7 @@ const ExploreDetails = () => {
   }, []);
 
   return (
-    <section className="common-padding bg-[#1D1D1F] py-20 px-6 md:px-12 lg:px-0">
+    <section className="common-padding bg-[#1D1D1F] py-20 px-6 md:px-12 lg:px-10">
       <div className="screen-max-width">
         <h1 className="text-4xl lg:text-5xl font-bold text-white mb-10">
           Explore os detalhes.
