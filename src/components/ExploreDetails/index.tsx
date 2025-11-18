@@ -6,10 +6,11 @@ import { Button } from "../ui/button";
 import gsap from "gsap";
 
 const ExploreDetails = () => {
-  const [activeFeature, setActiveFeature] = useState(-1); // Iniciar com -1 para nenhum aberto
+  const [activeFeature, setActiveFeature] = useState(-1);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const buttonsRef = useRef<(HTMLButtonElement | null)[]>([]);
-  const contentRef = useRef<HTMLDivElement>(null);
+  const titlesRef = useRef<(HTMLHeadingElement | null)[]>([]);
+  const descriptionsRef = useRef<(HTMLParagraphElement | null)[]>([]);
   
   const features = [
     {
@@ -49,50 +50,91 @@ const ExploreDetails = () => {
     }
   ];
 
+  const resetAllButtons = () => {
+    buttonsRef.current.forEach((button, index) => {
+      if (button) {
+        gsap.to(button, {
+          height: "80px",
+          minHeight: "80px",
+          scale: 1,
+          duration: 0.3,
+          ease: "power2.out"
+        });
+      }
+      
+      if (titlesRef.current[index]) {
+        gsap.to(titlesRef.current[index], {
+          opacity: 1,
+          scale: 1,
+          duration: 0.3,
+          ease: "power2.out"
+        });
+      }
+      
+      if (descriptionsRef.current[index]) {
+        gsap.to(descriptionsRef.current[index], {
+          opacity: 0,
+          y: -10,
+          duration: 0.2,
+          ease: "power2.in"
+        });
+      }
+    });
+  };
+
   const handleFeatureChange = (index: number) => {
     if (index === activeFeature || isTransitioning) return;
     
     setIsTransitioning(true);
 
-    // Animação do botão anterior (recolher) - apenas se houver um botão ativo anteriormente
-    if (activeFeature >= 0 && buttonsRef.current[activeFeature]) {
-      gsap.to(buttonsRef.current[activeFeature], {
-        scale: 1,
-        height: "80px",
-        duration: 1,
-        ease: "back.out(1.2)"
-      });
-    }
+    // Reset todos os botões primeiro
+    resetAllButtons();
 
-    // Animação do novo botão ativo (expandir com bounce)
+    // Timeline para o novo botão ativo
+    const tl = gsap.timeline({
+      onComplete: () => {
+        setActiveFeature(index);
+        setIsTransitioning(false);
+      }
+    });
+
+    // Animar o novo botão
     if (buttonsRef.current[index]) {
-      gsap.to(buttonsRef.current[index], {
-        scale: 1.05,
+      // Fade out do título
+      if (titlesRef.current[index]) {
+        tl.to(titlesRef.current[index], {
+          opacity: 0,
+          scale: 0.9,
+          duration: 0.2,
+          ease: "power2.in"
+        }, 0);
+      }
+
+      // Expandir altura
+      tl.to(buttonsRef.current[index], {
         height: "auto",
         minHeight: "200px",
-        duration: 1,
+        duration: 0.4,
         ease: "back.out(1.7)"
-      });
-    }
+      }, 0.1);
 
-    // Animação do conteúdo principal
-    if (contentRef.current) {
-      gsap.fromTo(contentRef.current, 
-        { opacity: 0, scale: 0.95, y: 20 },
-        { 
-          opacity: 1, 
-          scale: 1, 
-          y: 0, 
-          duration: 1,
-          ease: "back.out(1.4)"
-        }
-      );
-    }
+      // Scale
+      tl.to(buttonsRef.current[index], {
+        scale: 1.05,
+        duration: 0.3,
+        ease: "power2.out"
+      }, 0.3);
 
-    setTimeout(() => {
-      setActiveFeature(index);
-      setTimeout(() => setIsTransitioning(false), 50);
-    }, 300);
+      // Fade in do conteúdo
+      if (descriptionsRef.current[index]) {
+        tl.to(descriptionsRef.current[index], {
+          opacity: 1,
+          y: 0,
+          duration: 0.3,
+          ease: "power2.out"
+        }, 0.4);
+      }
+    }
   };
 
   const handleCloseFeature = () => {
@@ -100,49 +142,21 @@ const ExploreDetails = () => {
     
     setIsTransitioning(true);
 
-    // Animação do botão ativo (recolher)
-    if (buttonsRef.current[activeFeature]) {
-      gsap.to(buttonsRef.current[activeFeature], {
-        scale: 1,
-        height: "80px",
-        duration: 1,
-        ease: "back.out(1.2)"
-      });
-    }
+    const tl = gsap.timeline({
+      onComplete: () => {
+        setActiveFeature(-1);
+        setIsTransitioning(false);
+      }
+    });
 
-    // Animação do conteúdo principal para voltar ao estado inicial
-    if (contentRef.current) {
-      gsap.fromTo(contentRef.current, 
-        { opacity: 1, scale: 1, y: 0 },
-        { 
-          opacity: 0, 
-          scale: 0.95, 
-          y: 20, 
-          duration: 1,
-          ease: "back.out(1.4)",
-          onComplete: () => {
-            setActiveFeature(-1);
-            // Resetar a opacidade após a transição para mostrar a imagem padrão
-            setTimeout(() => {
-              if (contentRef.current) {
-                gsap.set(contentRef.current, { opacity: 1, scale: 1, y: 0 });
-              }
-              setIsTransitioning(false);
-            }, 50);
-          }
-        }
-      );
-    } else {
-      setActiveFeature(-1);
-      setTimeout(() => setIsTransitioning(false), 50);
-    }
+    // Reset todos os botões
+    resetAllButtons();
   };
 
   const handlePrevious = () => {
     if (features.length === 0) return;
     
     if (activeFeature === -1) {
-      // Se nenhum está aberto, abre o último
       handleFeatureChange(features.length - 1);
     } else {
       const newIndex = activeFeature > 0 ? activeFeature - 1 : features.length - 1;
@@ -154,7 +168,6 @@ const ExploreDetails = () => {
     if (features.length === 0) return;
     
     if (activeFeature === -1) {
-      // Se nenhum está aberto, abre o primeiro
       handleFeatureChange(0);
     } else {
       const newIndex = activeFeature < features.length - 1 ? activeFeature + 1 : 0;
@@ -162,41 +175,61 @@ const ExploreDetails = () => {
     }
   };
 
-  // Efeito hover nos botões com GSAP
+  // Efeito hover nos botões
   useEffect(() => {
+    const handleMouseEnter = (index: number) => {
+      if (index !== activeFeature && buttonsRef.current[index]) {
+        gsap.to(buttonsRef.current[index], {
+          scale: 1.02,
+          duration: 0.3,
+          ease: "power2.out"
+        });
+      }
+    };
+
+    const handleMouseLeave = (index: number) => {
+      if (index !== activeFeature && buttonsRef.current[index]) {
+        gsap.to(buttonsRef.current[index], {
+          scale: 1,
+          duration: 0.3,
+          ease: "power2.out"
+        });
+      }
+    };
+
+    // Adicionar event listeners
     buttonsRef.current.forEach((button, index) => {
       if (button) {
-        button.addEventListener('mouseenter', () => {
-          if (index !== activeFeature) {
-            gsap.to(button, {
-              scale: 1.02,
-              duration: 0.3,
-              ease: "power2.out"
-            });
-          }
-        });
-
-        button.addEventListener('mouseleave', () => {
-          if (index !== activeFeature) {
-            gsap.to(button, {
-              scale: 1,
-              duration: 0.3,
-              ease: "power2.out"
-            });
-          }
-        });
+        button.addEventListener('mouseenter', () => handleMouseEnter(index));
+        button.addEventListener('mouseleave', () => handleMouseLeave(index));
       }
     });
 
+    // Cleanup
     return () => {
       buttonsRef.current.forEach((button, index) => {
         if (button) {
-          button.removeEventListener('mouseenter', () => {});
-          button.removeEventListener('mouseleave', () => {});
+          button.removeEventListener('mouseenter', () => handleMouseEnter(index));
+          button.removeEventListener('mouseleave', () => handleMouseLeave(index));
         }
       });
     };
   }, [activeFeature]);
+
+  // Inicializar opacidades
+  useEffect(() => {
+    buttonsRef.current.forEach((_, index) => {
+      if (titlesRef.current[index]) {
+        gsap.set(titlesRef.current[index], { opacity: 1, scale: 1 });
+      }
+      if (descriptionsRef.current[index]) {
+        gsap.set(descriptionsRef.current[index], { 
+          opacity: activeFeature === index ? 1 : 0,
+          y: activeFeature === index ? 0 : 10
+        });
+      }
+    });
+  }, []);
 
   return (
     <section className="common-padding bg-[#1D1D1F] py-20 px-60">
@@ -247,29 +280,32 @@ const ExploreDetails = () => {
                     }`}
                     onClick={() => handleFeatureChange(index)}
                     style={{ 
-                      height: activeFeature === index ? 'auto' : '80px',
-                      minHeight: activeFeature === index ? '200px' : 'auto'
+                      height: '80px',
+                      minHeight: '80px'
                     }}
                   >
-                    <h3 className={`font-semibold text-lg ${
-                      activeFeature === index ? "hidden" : "text-white flex items-center justify-center"
-                    }`}>
+                    <h3 
+                      ref={el => {titlesRef.current[index] = el}}
+                      className="font-semibold text-lg text-white flex items-center justify-center"
+                    >
                       {feature.title}
                     </h3>
-                    <p className={`text-sm text-white transition-all duration-300 ${
-                      activeFeature === index ? "line-clamp-none" : "line-clamp-2 opacity-70 hidden"
-                    }`}>
-                      {feature.description}
-                    </p>
                     
-                    {/* Lista de especificações que aparece apenas quando ativo */}
-                    {activeFeature === index && (
+                    <div 
+                      ref={el => {descriptionsRef.current[index] = el}}
+                      className="opacity-0"
+                    >
+                      <p className="text-sm text-white mb-3">
+                        {feature.description}
+                      </p>
+                      
+                      {/* Lista de especificações que aparece apenas quando ativo */}
                       <ul className="mt-3 space-y-1">
                         {feature.specs.map((spec, specIndex) => (
                           <li key={specIndex} className="text-xs text-white">• {spec}</li>
                         ))}
                       </ul>
-                    )}
+                    </div>
                   </button>
                 ))}
               </div>
@@ -291,12 +327,8 @@ const ExploreDetails = () => {
               </Button>
             )}
             
-            <div 
-              ref={contentRef}
-              className="rounded-3xl overflow-hidden"
-            >
+            <div className="rounded-3xl overflow-hidden">
               <div className="aspect-video relative bg-black">
-                {/* Imagem com transição suave */}
                 <div className="absolute inset-0">
                   <div className="w-full h-full">
                     <Image
