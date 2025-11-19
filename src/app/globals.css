@@ -113,9 +113,36 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #9f9f9f;
+    --background: black;
     --foreground: #ededed;
   }
+}
+
+#showcase {
+        @apply relative;
+
+        .media {
+            @apply relative lg:overflow-hidden;
+
+            video {
+                @apply w-full object-cover object-center;
+            }
+
+            .mask {
+                @apply absolute h-full left-0 top-0 lg:top-0 xl:top-0;
+
+                img {
+                    @apply h-full scale-150 lg:scale-100;
+                    transform: matrix(80, 0, 0, 80, 0, 0);
+                }
+
+                @media (max-width: 1024px) {
+                    img {
+                        transform: matrix(1, 0, 0, 1, 0, 0);
+                    }
+                }
+            }
+        }
 }
 
 body {

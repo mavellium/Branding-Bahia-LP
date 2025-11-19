@@ -7,6 +7,7 @@ import { Icon } from '@iconify/react';
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay } from "swiper/modules";
 import { ChevronRight } from "lucide-react";
+import Image from "next/image";
 import "swiper/css";
 
 export function Setors() {
@@ -98,9 +99,7 @@ export function Setors() {
 
   return (
     <section
-      className="py-20 w-full flex flex-col justify-center items-center bg-black px-4"
-      id="cases"
-    >
+      className="py-20 w-full flex flex-col justify-center items-center bg-black px-4">
       <div className="container flex flex-col justify-center">
         <h2 className="font-heading ml-5 md:ml-10 lg:ml-20 xl:ml-50 2xl:ml-20 text-start text-2xl sm:text-3xl md:text-2xl font-bold text-white mb-10">
           Resultados Reais para Diferentes Setores
@@ -281,9 +280,9 @@ export function Setors() {
               className="flex items-center bg-[#262629] backdrop-blur-md text-black hover:bg-[#151516] rounded-full px-4 py-4 h-10 shadow-sm"
             >
               {isPlaying ? (
-                <Icon icon="solar:pause-bold" className="w-5 h-5 text-white" />
+                <Image src="/images/pause.svg" width={28} height={28} alt="pause" className="w-5 h-5 text-white" />
               ) : (
-                <Icon icon="solar:play-bold" className="w-5 h-5 text-white" />
+                <Image src="/images/play.svg" width={28} height={28} alt="pause" className="w-5 h-5 text-white" />
               )}
             </Button>
           </div>
