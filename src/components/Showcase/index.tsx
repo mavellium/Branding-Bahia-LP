@@ -60,7 +60,7 @@ const Showcase = () => {
             <div className='media'>
                 <video src='/videos/showcase.webm' loop muted autoPlay playsInline />
                 <div className='mask'>
-                    <img src='/mask-logo.svg' alt="Showcase logo" />
+                    <img src='/mask-black.webp' alt="Showcase logo" />
                 </div>
             </div>
         </section>

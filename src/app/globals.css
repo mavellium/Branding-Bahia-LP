@@ -132,8 +132,8 @@
                 @apply absolute h-full left-0 top-0 lg:top-0 xl:top-0;
 
                 img {
-                    @apply h-full scale-150 lg:scale-100;
-                    transform: matrix(80, 0, 0, 80, 0, 0);
+                    @apply h-full scale-150 lg:scale-110;
+                    transform: matrix(200, 0, 0, 190, 0, 0);
                 }
 
                 @media (max-width: 1024px) {

@@ -275,7 +275,7 @@ export function Setors() {
         )}
 
         {/* 🔘 CONTROLES PADRONIZADOS - Dots + Play/Pause */}
-        <div className="flex items-center justify-center mt-80 gap-4">
+        <div className="flex items-center justify-center  mt:10 mb-10 lg:mt-80 gap-4">
           {/* Dots no estilo Nubank */}
           <div className="flex gap-2 bg-[#262629] h-10 w-auto p-5 rounded-full justify-center items-center">
             {cards.map((_, index) => (
