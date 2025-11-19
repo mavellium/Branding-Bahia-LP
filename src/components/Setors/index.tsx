@@ -7,6 +7,7 @@ import { Icon } from '@iconify/react';
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay } from "swiper/modules";
 import "swiper/css";
+import { div } from "framer-motion/client";
 
 export function Setors() {
   const cards = [
@@ -46,16 +47,33 @@ export function Setors() {
 
   const [activeIndex, setActiveIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(true);
-  const [windowWidth, setWindowWidth] = useState<number | null>(null);
+  const [windowWidth, setWindowWidth] = useState<number>(0); // Inicialize com 0 em vez de null
   const swiperRef = useRef<any>(null);
+  const [isClient, setIsClient] = useState(false);
 
-  // Detecta largura da tela
+  // Verifique se está no cliente
   useEffect(() => {
-    const handleResize = () => setWindowWidth(window.innerWidth);
-    handleResize();
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
+    setIsClient(true);
+    setWindowWidth(window.innerWidth);
+
+    const handleResize = () => {
+      setWindowWidth(window.innerWidth);
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
   }, []);
+
+  // Use useLayoutEffect para operações sincronas com DOM
+  useEffect(() => {
+    if (!isClient) return;
+
+    // Inicialize o Swiper apenas no cliente
+    if (swiperRef.current) {
+      // Sua inicialização do Swiper aqui
+    }
+  }, [isClient]);
+
 
   const isMobile = windowWidth !== null && windowWidth < 768;
 
@@ -83,13 +101,13 @@ export function Setors() {
     }
   }, [isMobile, isPlaying]);
 
-  if (windowWidth === null) return null;
-
-  // Função para navegar para um slide específico
   const goToSlide = (index: number) => {
     if (isMobile) {
       setActiveIndex(index);
-      swiperRef.current?.slideTo(index);
+      // Adicione uma verificação extra para garantir que o Swiper está disponível
+      if (swiperRef.current && swiperRef.current.swiper) {
+        swiperRef.current.swiper.slideTo(index);
+      }
     } else {
       setActiveIndex(index);
     }
@@ -161,13 +179,14 @@ export function Setors() {
         )}
 
         {/* 🟣 DESKTOP */}
-        {!isMobile && (
+        {isClient && !isMobile && (
           <>
             <div className="flex justify-center flex-wrap gap-6 md:gap-2 relative">
               {cards.map((card, index) => {
                 const isActive = index === activeIndex;
-                const activeWidth = windowWidth < 1024 ? 260 : 320;
-                const inactiveWidth = windowWidth < 1024 ? 140 : 160;
+                // Use valores padrão seguros enquanto windowWidth é 0
+                const activeWidth = windowWidth < 1024 && windowWidth > 0 ? 260 : 320;
+                const inactiveWidth = windowWidth < 1024 && windowWidth > 0 ? 140 : 160;
 
                 return (
                   <motion.div
@@ -192,9 +211,8 @@ export function Setors() {
                         duration: 0.4,
                         ease: [0.4, 0, 0.2, 1],
                       }}
-                      className={`relative cursor-pointer overflow-hidden rounded-2xl shadow-md ${
-                        isActive ? "ring-0" : "ring-0"
-                      }`}
+                      className={`relative cursor-pointer overflow-hidden rounded-2xl shadow-md ${isActive ? "ring-0" : "ring-0"
+                        }`}
                     >
                       <motion.img
                         layout
@@ -208,9 +226,8 @@ export function Setors() {
                       />
                       <motion.div
                         layout
-                        className={`absolute inset-0 flex justify-center items-center text-white ${
-                          isActive ? "bg-black/20" : "bg-black/50"
-                        }`}
+                        className={`absolute inset-0 flex justify-center items-center text-white ${isActive ? "bg-black/20" : "bg-black/50"
+                          }`}
                         transition={{
                           duration: 0.4,
                           ease: [0.4, 0, 0.2, 1],
@@ -230,11 +247,14 @@ export function Setors() {
                             ease: [0.4, 0, 0.2, 1],
                           }}
                           className="absolute top-full mt-4 rounded-2xl p-1 z-10 flex flex-col items-start text-left"
-                          style={{ width: activeWidth, maxWidth: 360 }}
+                          style={{
+                            width: activeWidth,
+                            maxWidth: 360
+                          }}
                         >
-                            <h2 className="text-white text-md md:text-lg font-bold mb-3 leading-relaxed">
-                                {card.title}
-                            </h2>
+                          <h2 className="text-white text-md md:text-lg font-bold mb-3 leading-relaxed">
+                            {card.title}
+                          </h2>
                           <p className="text-white text-sm md:text-md mb-3 leading-relaxed">
                             {card.description}
                           </p>
@@ -262,11 +282,10 @@ export function Setors() {
               <button
                 key={index}
                 onClick={() => goToSlide(index)}
-                className={`h-1 rounded-full transition-all duration-300 ${
-                  index === activeIndex
+                className={`h-1 rounded-full transition-all duration-300 ${index === activeIndex
                     ? "bg-white w-8 h-2"  // Ativo - preto e largura maior
                     : "bg-[#ACACAC] w-2 h-2 hover:bg-black"  // Inativos
-                }`}
+                  }`}
               ></button>
             ))}
           </div>
@@ -288,5 +307,6 @@ export function Setors() {
         </div>
       </div>
     </section>
+    // <div>a</div>
   );
 }

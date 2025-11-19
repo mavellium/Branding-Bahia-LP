@@ -1,20 +1,28 @@
 'use client';
 
-import { useMediaQuery } from "react-responsive";
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/all";
-import { useRef } from "react";
+import { useRef, useEffect, useState } from "react";
 
 gsap.registerPlugin(ScrollTrigger);
 
 const Showcase = () => {
-    const isTablet = useMediaQuery({ query: "(max-width: 1024px)" });
+    const [isClient, setIsClient] = useState(false);
     const container = useRef(null);
+
+    useEffect(() => {
+        setIsClient(true);
+    }, []);
 
     useGSAP(
         (context) => {
+            if (!isClient) return;
+
             const ctx = gsap.context(() => {
+                // Verificar width diretamente no cliente
+                const isTablet = window.innerWidth <= 1024;
+                
                 if (!isTablet) {
                     const timeline = gsap.timeline({
                         scrollTrigger: {
@@ -32,17 +40,27 @@ const Showcase = () => {
                 }
             }, container);
 
-            return () => ctx.revert(); // evita o erro no cleanup
+            return () => ctx.revert();
         },
-        { dependencies: [isTablet], scope: container }
+        { dependencies: [isClient], scope: container }
     );
+
+    if (!isClient) {
+        return (
+            <section id='showcase'>
+                <div className='media'>
+                    <div className="w-full h-[500px] bg-gray-200 animate-pulse rounded-lg"></div>
+                </div>
+            </section>
+        );
+    }
 
     return (
         <section id='showcase' ref={container}>
             <div className='media'>
-                <video src='/videos/game.mp4' loop muted autoPlay playsInline />
+                <video src='/videos/showcase.webm' loop muted autoPlay playsInline />
                 <div className='mask'>
-                    <img src='/mask-logo.svg' />
+                    <img src='/mask-logo.svg' alt="Showcase logo" />
                 </div>
             </div>
         </section>

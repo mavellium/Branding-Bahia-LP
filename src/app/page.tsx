@@ -19,9 +19,8 @@ export default function Home() {
         <Highlights></Highlights>
         <ExploreDetails></ExploreDetails>
         <Roi></Roi>
-        <Showcase></Showcase>
         <Setors></Setors>
-
+        <Showcase></Showcase>
         <About></About>
         <News></News>
         <Faqs></Faqs>
