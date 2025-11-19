@@ -1,4 +1,6 @@
+import About from "@/components/About";
 import ExploreDetails from "@/components/ExploreDetails";
+import Faqs from "@/components/Faqs";
 import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
 import { Headline } from "@/components/Headline";
@@ -12,16 +14,19 @@ export default function Home() {
   return (
     <>
       <Header></Header>
-      <main>
+      <main className="bg-black">
         <Headline></Headline>
         <Highlights></Highlights>
         <ExploreDetails></ExploreDetails>
         <Roi></Roi>
+        <Showcase></Showcase>
         <Setors></Setors>
-        {/* <Showcase></Showcase> */}
+
+        <About></About>
         <News></News>
+        <Faqs></Faqs>
       </main>
-      {/* <Footer></Footer> */}
+      <Footer></Footer>
 
     </>
   );

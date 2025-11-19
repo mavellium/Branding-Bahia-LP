@@ -39,7 +39,7 @@ export default function Highlights() {
         <div className="mb-12 w-full md:flex items-end justify-between">
           <h1
             id="title"
-            className="text-gray lg:text-5xl md:text-4xl text-3xl lg:mb-0 mb-5 font-medium opacity-0 translate-y-20"
+            className="text-white lg:text-5xl md:text-4xl text-3xl lg:mb-0 mb-5 font-medium opacity-0 translate-y-20"
           >
             Estratégias que conectam, engajam e vendem.
           </h1>

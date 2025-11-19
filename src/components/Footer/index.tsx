@@ -32,7 +32,7 @@ export function Footer() {
   useSmoothScroll();
 
   return (
-    <footer className="border-t w-full flex flex-col justify-center items-center border-[#04A15E] py-12 px-6 md:px-12 md:py-16 bg-[#030F1B]">
+    <footer className="border-t w-full flex flex-col justify-center items-center border-[#09A7FF] py-12 px-6 md:px-12 md:py-16 bg-black">
       <div className="container mx-auto">
         <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4 justify-center text-center md:text-start">
           {/* Logo e Instagram */}
@@ -102,7 +102,7 @@ export function Footer() {
           </div>
         </div>
 
-        <Separator className="my-8 bg-[#04A15E]" />
+        <Separator className="my-8 bg-[#09A7FF]" />
 
         <div className="flex flex-col md:flex-row justify-center md:justify-between items-center gap-4 text-sm text-[#A7B4CE] text-center md:text-left">
           <p>© 2024 Mavellium — Todos os direitos reservados.</p>
