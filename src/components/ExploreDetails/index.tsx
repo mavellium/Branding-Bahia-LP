@@ -11,7 +11,7 @@ const ExploreDetails = () => {
   const [isTransitioning, setIsTransitioning] = useState(false);
   const buttonsRef = useRef<(HTMLButtonElement | null)[]>([]);
   const titlesRef = useRef<(HTMLHeadingElement | null)[]>([]);
-  const descriptionsRef = useRef<(HTMLParagraphElement | null)[]>([]);
+  const descriptionsRef = useRef<(HTMLDivElement | null)[]>([]);
 
   const features = [
     {
@@ -51,44 +51,55 @@ const ExploreDetails = () => {
     }
   ];
 
-  const resetAllButtons = () => {
-    buttonsRef.current.forEach((button, index) => {
-      if (button) {
-        gsap.to(button, {
-          height: "80px",
-          minHeight: "80px",
-          scale: 1,
-          duration: 0.3,
-          ease: "power2.out"
-        });
-      }
+  const resetButtonToInactive = (index: number) => {
+    if (buttonsRef.current[index]) {
+      gsap.to(buttonsRef.current[index], {
+        scale: 1,
+        duration: 0.3,
+        ease: "power2.out"
+      });
+    }
 
-      if (titlesRef.current[index]) {
-        gsap.to(titlesRef.current[index], {
-          opacity: 1,
-          scale: 1,
-          duration: 0.3,
-          ease: "power2.out"
-        });
-      }
+    if (titlesRef.current[index]) {
+      gsap.to(titlesRef.current[index], {
+        opacity: 1,
+        scale: 1,
+        duration: 0.3,
+        ease: "power2.out"
+      });
+    }
 
-      if (descriptionsRef.current[index]) {
-        gsap.to(descriptionsRef.current[index], {
-          opacity: 0,
-          y: -10,
-          duration: 0.2,
-          ease: "power2.in"
-        });
-      }
-    });
+    if (descriptionsRef.current[index]) {
+      gsap.to(descriptionsRef.current[index], {
+        opacity: 0,
+        y: -10,
+        duration: 0.2,
+        ease: "power2.in"
+      });
+    }
   };
 
   const handleFeatureChange = (index: number) => {
-    if (index === activeFeature || isTransitioning) return;
+    if (isTransitioning) return;
 
+    // Se clicou no botão já ativo, fecha ele
+    if (index === activeFeature) {
+      setIsTransitioning(true);
+      
+      const tl = gsap.timeline({
+        onComplete: () => {
+          setActiveFeature(-1);
+          setIsTransitioning(false);
+        }
+      });
+
+      resetButtonToInactive(index);
+      return;
+    }
+
+    // Se clicou em um botão diferente
     setIsTransitioning(true);
-    resetAllButtons();
-
+    
     const tl = gsap.timeline({
       onComplete: () => {
         setActiveFeature(index);
@@ -96,28 +107,18 @@ const ExploreDetails = () => {
       }
     });
 
+    // Fechar botão ativo atual se houver
+    if (activeFeature !== -1) {
+      resetButtonToInactive(activeFeature);
+    }
+
+    // Abrir novo botão
     if (buttonsRef.current[index]) {
-      if (titlesRef.current[index]) {
-        tl.to(titlesRef.current[index], {
-          opacity: 0,
-          scale: 0.9,
-          duration: 0.2,
-          ease: "power2.in"
-        }, 0);
-      }
-
-      tl.to(buttonsRef.current[index], {
-        height: "auto",
-        minHeight: "200px",
-        duration: 0.4,
-        ease: "back.out(1.7)"
-      }, 0.1);
-
       tl.to(buttonsRef.current[index], {
         scale: 1.05,
-        duration: 0.3,
-        ease: "power2.out"
-      }, 0.3);
+        duration: 0.4,
+        ease: "back.out(1.7)"
+      }, 0.2);
 
       if (descriptionsRef.current[index]) {
         tl.to(descriptionsRef.current[index], {
@@ -125,7 +126,7 @@ const ExploreDetails = () => {
           y: 0,
           duration: 0.3,
           ease: "power2.out"
-        }, 0.4);
+        }, 0.3);
       }
     }
   };
@@ -134,13 +135,14 @@ const ExploreDetails = () => {
     if (activeFeature === -1 || isTransitioning) return;
 
     setIsTransitioning(true);
-    gsap.timeline({
+    resetButtonToInactive(activeFeature);
+    
+    const tl = gsap.timeline({
       onComplete: () => {
         setActiveFeature(-1);
         setIsTransitioning(false);
       }
     });
-    resetAllButtons();
   };
 
   const handlePrevious = () => {
@@ -165,10 +167,11 @@ const ExploreDetails = () => {
     handleFeatureChange(newIndex);
   };
 
+  // Inicialização
   useEffect(() => {
-    buttonsRef.current.forEach((_, index) => {
-      if (titlesRef.current[index]) {
-        gsap.set(titlesRef.current[index], { opacity: 1, scale: 1 });
+    buttonsRef.current.forEach((button, index) => {
+      if (button) {
+        gsap.set(button, { scale: 1 });
       }
       if (descriptionsRef.current[index]) {
         gsap.set(descriptionsRef.current[index], {
@@ -186,7 +189,7 @@ const ExploreDetails = () => {
           Explore os detalhes.
         </h1>
 
-        {/* DESKTOP ORIGINAL (setas para cima/baixo) */}
+        {/* DESKTOP VERSION */}
         <div className="hidden lg:flex flex-row gap-8 items-center bg-black rounded-4xl p-10">
           <div className="flex items-center gap-4 w-1/4">
             <div className="flex flex-col gap-4 mt-2">
@@ -210,45 +213,51 @@ const ExploreDetails = () => {
             </div>
 
             <div className="flex-1">
-              <div className="sticky top-24 space-y-4">
-                {features.map((feature, index) => (
-                  <button
-                    key={feature.id}
-                    ref={(el) => { (buttonsRef.current[index] = el) }}
-                    onClick={() => handleFeatureChange(index)}
-                    className={`text-left justify-center flex flex-col transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] ${activeFeature === index
-                        ? "bg-[#1E1E20] rounded-4xl p-6"
-                        : "bg-[#1E1E20] hover:bg-[#1E1E20]/70 rounded-4xl px-5 py-4"
+              <div className="sticky top-24">
+                <div className="flex-col space-y-4">
+                  {features.map((feature, index) => (
+                    <button
+                      key={feature.id}
+                      ref={(el) => { (buttonsRef.current[index] = el) }}
+                      onClick={() => handleFeatureChange(index)}
+                      className={`text-left flex flex-col transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] ${
+                        activeFeature === index
+                          ? "bg-[#1E1E20] rounded-4xl p-6"
+                          : "bg-[#1E1E20] hover:bg-[#1E1E20]/70 rounded-4xl px-5 py-4"
                       }`}
-                  >
-                    <h3
-                      ref={(el) => { (titlesRef.current[index] = el) }}
-                      className="font-semibold text-lg text-white flex items-center justify-start text-start"
+                      style={{
+                        cursor: isTransitioning ? "not-allowed" : "pointer"
+                      }}
                     >
-                      {/* Ícone apenas para botões inativos */}
-                      {activeFeature !== index && (
-                        <Icon icon="solar:add-circle-linear" className="w-5 h-5 mr-2 flex-shrink-0" />
-                      )}
+                      <h3
+                        ref={(el) => { (titlesRef.current[index] = el) }}
+                        className="font-semibold text-lg text-white flex items-center justify-start text-start"
+                      >
+                        {/* Ícone apenas para botões inativos */}
+                        {activeFeature !== index && (
+                          <Icon icon="solar:add-circle-linear" className="w-5 h-5 mr-2 flex-shrink-0" />
+                        )}
+                        {feature.title}
+                      </h3>
 
-                      {feature.title}
-                    </h3>
-
-                    <div
-                      ref={(el) => { (descriptionsRef.current[index] = el) }}
-                      className={`transition-all duration-500 overflow-hidden ${activeFeature === index
-                          ? "opacity-100 max-h-[500px] mt-4"
-                          : "opacity-0 max-h-0 max-w-0 transition-all duration-500"
+                      <div
+                        ref={(el) => { (descriptionsRef.current[index] = el) }}
+                        className={`transition-all duration-500 overflow-hidden ${
+                          activeFeature === index
+                            ? "opacity-100 max-h-[200px] max-w-[300px] mt-4"
+                            : "opacity-0 max-h-0 max-w-0"
                         }`}
-                    >
-                      <p className="text-sm text-white mb-3">{feature.description}</p>
-                      <ul className="mt-3 space-y-1">
-                        {feature.specs.map((spec, i) => (
-                          <li key={i} className="text-xs text-white">• {spec}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  </button>
-                ))}
+                      >
+                        <p className="text-sm text-white mb-3">{feature.description}</p>
+                        <ul className="mt-3 space-y-1">
+                          {feature.specs.map((spec, i) => (
+                            <li key={i} className="text-xs text-white">• {spec}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
@@ -278,9 +287,8 @@ const ExploreDetails = () => {
           </div>
         </div>
 
-        {/* MOBILE/TABLET - Layout como na imagem (setas laterais com item no meio) */}
+        {/* MOBILE/TABLET VERSION */}
         <div className="lg:hidden bg-black rounded-4xl p-6">
-          {/* Imagem */}
           <div className="rounded-3xl overflow-hidden mb-6">
             <div className="aspect-video relative bg-black">
               <Image
@@ -292,9 +300,7 @@ const ExploreDetails = () => {
             </div>
           </div>
 
-          {/* Navegação Mobile - Setas laterais com item no meio */}
           <div className="flex items-center justify-between gap-4">
-            {/* Seta esquerda */}
             <Button
               onClick={handlePrevious}
               className="w-12 h-12 flex items-center justify-center rounded-full bg-[#1E1E20] hover:bg-[#1E1E20]/80 transition-colors flex-shrink-0"
@@ -304,7 +310,6 @@ const ExploreDetails = () => {
               </svg>
             </Button>
 
-            {/* Item do meio - conteúdo do botão atual */}
             <div className="flex-1 text-center min-h-[60px] flex items-center justify-center">
               {activeFeature >= 0 ? (
                 <div className="w-full">
@@ -320,7 +325,6 @@ const ExploreDetails = () => {
               )}
             </div>
 
-            {/* Seta direita */}
             <Button
               onClick={handleNext}
               className="w-12 h-12 flex items-center justify-center rounded-full bg-[#1E1E20] hover:bg-[#1E1E20]/80 transition-colors flex-shrink-0"
@@ -331,13 +335,13 @@ const ExploreDetails = () => {
             </Button>
           </div>
 
-          {/* Indicadores de posição (opcional) */}
           <div className="flex justify-center mt-4 gap-2">
             {features.map((_, index) => (
               <div
                 key={index}
-                className={`w-2 h-2 rounded-full transition-colors ${index === activeFeature ? "bg-white" : "bg-gray-600"
-                  }`}
+                className={`w-2 h-2 rounded-full transition-colors ${
+                  index === activeFeature ? "bg-white" : "bg-gray-600"
+                }`}
               />
             ))}
           </div>
