@@ -3,6 +3,7 @@
 import { useRef, useState, useEffect } from "react";
 import Image from "next/image";
 import { Button } from "../ui/button";
+import { Icon } from "@iconify/react";
 import gsap from "gsap";
 
 const ExploreDetails = () => {
@@ -147,8 +148,8 @@ const ExploreDetails = () => {
       activeFeature === -1
         ? features.length - 1
         : activeFeature > 0
-        ? activeFeature - 1
-        : features.length - 1;
+          ? activeFeature - 1
+          : features.length - 1;
 
     handleFeatureChange(newIndex);
   };
@@ -158,8 +159,8 @@ const ExploreDetails = () => {
       activeFeature === -1
         ? 0
         : activeFeature < features.length - 1
-        ? activeFeature + 1
-        : 0;
+          ? activeFeature + 1
+          : 0;
 
     handleFeatureChange(newIndex);
   };
@@ -170,7 +171,7 @@ const ExploreDetails = () => {
         gsap.set(titlesRef.current[index], { opacity: 1, scale: 1 });
       }
       if (descriptionsRef.current[index]) {
-        gsap.set(descriptionsRef.current[index], { 
+        gsap.set(descriptionsRef.current[index], {
           opacity: activeFeature === index ? 1 : 0,
           y: activeFeature === index ? 0 : 10
         });
@@ -213,23 +214,32 @@ const ExploreDetails = () => {
                 {features.map((feature, index) => (
                   <button
                     key={feature.id}
-                    ref={(el) => {(buttonsRef.current[index] = el)}}
+                    ref={(el) => { (buttonsRef.current[index] = el) }}
                     onClick={() => handleFeatureChange(index)}
-                    className={`w-full text-left flex flex-col justify-start p-4 rounded-2xl transition-colors ${
-                      activeFeature === index
-                        ? "bg-gray-800 border-l-4 border-blue-500"
-                        : "bg-gray-800/50 hover:bg-gray-800"
-                    }`}
-                    style={{ height: "80px", minHeight: "80px" }}
+                    className={`text-left justify-center flex flex-col transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] ${activeFeature === index
+                        ? "bg-[#1E1E20] rounded-4xl p-6"
+                        : "bg-[#1E1E20] hover:bg-[#1E1E20]/70 rounded-4xl px-5 py-4"
+                      }`}
                   >
-                    <h3 
-                      ref={(el) => {(titlesRef.current[index] = el)}}
-                      className="font-semibold text-lg text-white flex items-center justify-center"
+                    <h3
+                      ref={(el) => { (titlesRef.current[index] = el) }}
+                      className="font-semibold text-lg text-white flex items-center justify-start text-start"
                     >
+                      {/* Ícone apenas para botões inativos */}
+                      {activeFeature !== index && (
+                        <Icon icon="solar:add-circle-linear" className="w-5 h-5 mr-2 flex-shrink-0" />
+                      )}
+
                       {feature.title}
                     </h3>
 
-                    <div ref={(el) => {(descriptionsRef.current[index] = el)}} className="opacity-0">
+                    <div
+                      ref={(el) => { (descriptionsRef.current[index] = el) }}
+                      className={`transition-all duration-500 overflow-hidden ${activeFeature === index
+                          ? "opacity-100 max-h-[500px] mt-4"
+                          : "opacity-0 max-h-0"
+                        }`}
+                    >
                       <p className="text-sm text-white mb-3">{feature.description}</p>
                       <ul className="mt-3 space-y-1">
                         {feature.specs.map((spec, i) => (
@@ -247,7 +257,7 @@ const ExploreDetails = () => {
             {activeFeature >= 0 && (
               <Button
                 onClick={handleCloseFeature}
-                className="absolute top-2 right-2 z-10 w-8 h-8 flex items-center justify-center rounded-full bg-gray-800/80 hover:bg-gray-700 transition-colors"
+                className="absolute top-2 right-2 z-10 w-8 h-8 flex items-center justify-center rounded-full bg-[#1E1E20] hover:bg-[#1E1E20]/70 transition-colors"
               >
                 <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -326,9 +336,8 @@ const ExploreDetails = () => {
             {features.map((_, index) => (
               <div
                 key={index}
-                className={`w-2 h-2 rounded-full transition-colors ${
-                  index === activeFeature ? "bg-white" : "bg-gray-600"
-                }`}
+                className={`w-2 h-2 rounded-full transition-colors ${index === activeFeature ? "bg-white" : "bg-gray-600"
+                  }`}
               />
             ))}
           </div>

@@ -27,7 +27,7 @@ const Showcase = () => {
                     const timeline = gsap.timeline({
                         scrollTrigger: {
                             trigger: container.current,
-                            start: "top top+=100",
+                            start: "top",
                             end: "bottom top",
                             scrub: true,
                             pin: true,
