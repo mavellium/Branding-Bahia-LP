@@ -51,6 +51,27 @@ const ExploreDetails = () => {
     }
   ];
 
+  // CORREÇÃO: Função específica para mobile
+  const handleMobileNavigation = (direction: 'previous' | 'next') => {
+    if (isTransitioning) return;
+
+    setIsTransitioning(true);
+
+    let newIndex;
+    if (direction === 'next') {
+      newIndex = activeFeature === -1 ? 0 : (activeFeature + 1) % features.length;
+    } else {
+      newIndex = activeFeature === -1 ? features.length - 1 : (activeFeature - 1 + features.length) % features.length;
+    }
+
+    setActiveFeature(newIndex);
+    
+    // Simular transição sem GSAP no mobile
+    setTimeout(() => {
+      setIsTransitioning(false);
+    }, 300);
+  };
+
   const resetButtonToInactive = (index: number) => {
     if (buttonsRef.current[index]) {
       gsap.to(buttonsRef.current[index], {
@@ -231,7 +252,7 @@ const ExploreDetails = () => {
                     >
                       <h3
                         ref={(el) => { (titlesRef.current[index] = el) }}
-                        className="font-semibold text-lg text-white flex items-center justify-start text-start"
+                        className="font-semibold lg:text-md md:text-sm text-white flex items-center justify-start text-start"
                       >
                         {/* Ícone apenas para botões inativos */}
                         {activeFeature !== index && (
@@ -287,47 +308,54 @@ const ExploreDetails = () => {
           </div>
         </div>
 
-        {/* MOBILE/TABLET VERSION */}
+        {/* MOBILE/TABLET VERSION - CORRIGIDA */}
         <div className="lg:hidden bg-black rounded-4xl p-6">
           <div className="rounded-3xl overflow-hidden mb-6">
             <div className="aspect-video relative bg-black">
               <Image
                 src={activeFeature >= 0 ? features[activeFeature].image : "/explore-bg.png"}
-                alt="Feature"
+                alt={activeFeature >= 0 ? features[activeFeature].title : "Feature"}
                 fill
                 className="object-cover"
               />
             </div>
           </div>
 
-          <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center justify-between gap-4 mb-4">
             <Button
-              onClick={handlePrevious}
-              className="w-12 h-12 flex items-center justify-center rounded-full bg-[#1E1E20] hover:bg-[#1E1E20]/80 transition-colors flex-shrink-0"
+              onClick={() => handleMobileNavigation('previous')}
+              disabled={isTransitioning}
+              className="w-12 h-12 flex items-center justify-center rounded-full bg-[#1E1E20] hover:bg-[#1E1E20]/80 transition-colors flex-shrink-0 disabled:opacity-50"
             >
               <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
             </Button>
 
-            <div className="flex-1 text-center min-h-[60px] flex items-center justify-center">
+            <div className="flex-1 text-center min-h-[80px] flex items-center justify-center px-2">
               {activeFeature >= 0 ? (
                 <div className="w-full">
                   <h3 className="font-semibold text-lg text-white mb-2">
                     {features[activeFeature].title}
                   </h3>
-                  <p className="text-sm text-gray-300">
+                  <p className="text-sm text-gray-300 mb-2">
                     {features[activeFeature].description}
                   </p>
+                  <ul className="mt-2 space-y-1">
+                    {features[activeFeature].specs.map((spec, i) => (
+                      <li key={i} className="text-xs text-gray-400">• {spec}</li>
+                    ))}
+                  </ul>
                 </div>
               ) : (
-                <p className="text-gray-400">Selecione um item</p>
+                <p className="text-gray-400">Toque nas setas para explorar</p>
               )}
             </div>
 
             <Button
-              onClick={handleNext}
-              className="w-12 h-12 flex items-center justify-center rounded-full bg-[#1E1E20] hover:bg-[#1E1E20]/80 transition-colors flex-shrink-0"
+              onClick={() => handleMobileNavigation('next')}
+              disabled={isTransitioning}
+              className="w-12 h-12 flex items-center justify-center rounded-full bg-[#1E1E20] hover:bg-[#1E1E20]/80 transition-colors flex-shrink-0 disabled:opacity-50"
             >
               <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -337,11 +365,17 @@ const ExploreDetails = () => {
 
           <div className="flex justify-center mt-4 gap-2">
             {features.map((_, index) => (
-              <div
+              <button
                 key={index}
-                className={`w-2 h-2 rounded-full transition-colors ${
+                onClick={() => {
+                  if (!isTransitioning) {
+                    setActiveFeature(index);
+                  }
+                }}
+                disabled={isTransitioning}
+                className={`w-3 h-3 rounded-full transition-colors ${
                   index === activeFeature ? "bg-white" : "bg-gray-600"
-                }`}
+                } ${isTransitioning ? "opacity-50" : "opacity-100"}`}
               />
             ))}
           </div>
