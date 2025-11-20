@@ -16,38 +16,57 @@ const ExploreDetails = () => {
   const features = [
     {
       id: 1,
-      title: "Chip M3",
-      description: "O mais avançado chip para um computador pessoal...",
-      image: "/explore-bg.png",
-      specs: ["CPU até 16 núcleos", "GPU até 40 núcleos", "Neural Engine de 16 núcleos", "Até 128GB de memória"]
+      title: "Tráfego Pago",
+      description: `Anúncios no Meta Ads (Facebook, Instagram e WhatsApp), Google Ads, LinkedIn Ads, TikTok Ads, Kwai Ads e Native Advertising.
+
+      Desenvolvemos campanhas de mídia paga nas principais plataformas do mercado, como Google, Meta, TikTok, Kwai e muito mais, sempre focadas em gerar resultados reais para o seu negócio.`,
+      image: "/explore-bg.png"
     },
     {
       id: 2,
-      title: "Tela Liquid Retina XDR",
-      description: "A melhor tela ever em um notebook...",
+      title: "Criação de conteúdo",
+        description: `Criamos conteúdos alinhados às estratégias, capazes de atrair os clientes certos para o seu negócio e aumentar as vendas.
+
+                      Produzimos textos, storytelling, vídeos curtos, infográficos, artes e outros formatos de conteúdo.`,
       image: "/explore-bg.png",
-      specs: ["14.2″ ou 16.2″", "Até 1.600 nits", "ProMotion 120Hz", "Resolução 3024x1964"]
     },
     {
       id: 3,
-      title: "Bateria para o dia todo",
-      description: "Até 22 horas de reprodução de vídeo...",
+      title: "Criação de sites",
+      description: "Criamos a página ideal para o seu objetivo de negócio, de acordo com sua identidade visual e público-alvo.",
       image: "/explore-bg.png",
-      specs: ["Até 22 horas", "Carregamento rápido", "Gestão inteligente", "Bateria de lítio"]
     },
     {
       id: 4,
-      title: "Conectividade avançada",
-      description: "Wi-Fi 6E, Thunderbolt 4, HDMI e MagSafe 3...",
+      title: "WhatsApp Automatizado",
+      description: `Automatizamos o atendimento da sua empresa com chatbots inteligentes para WhatsApp, Instagram, site e outras redes sociais.
+
+Criamos soluções personalizadas com IA para responder mensagens, captar leads e integrar seus canais de comunicação, economizando tempo e aumentando resultados.`,
       image: "/explore-bg.png",
-      specs: ["3x Thunderbolt 4", "HDMI", "MagSafe 3", "Wi-Fi 6E", "Leitor SDXC"]
     },
     {
       id: 5,
-      title: "Sistema de áudio",
-      description: "Alto-falantes com áudio espacial...",
+      title: "CRM - Implantação e suporte",
+      description: `Integramos o CRM aos canais de atendimento e automação, garantindo uma experiência de relacionamento centralizada, com dados unificados e gestão inteligente dos contatos.`,
       image: "/explore-bg.png",
-      specs: ["Alto-falantes", "Áudio espacial", "Gravação pro", "Cancelamento de ruído"]
+    },
+    {
+      id: 6,
+      title: "Otimização de SEO e GEO",
+      description: `Fazemos sua marca aparecer no topo das buscas do Google e nas respostas das IAs generativas.
+
+Usamos estratégias de SEO (Search Engine Optimization) e GEO (Generative Engine Optimization) para aumentar sua visibilidade tanto nos mecanismos de busca tradicionais quanto nas novas plataformas de Inteligência Artificial, como ChatGPT, Gemini, Copilot e Perplexity.`,
+      image: "/explore-bg.png",
+    },
+    {
+      id: 7,
+      title: "BPM",
+      description: `Mapeamos e otimizamos seus processos de venda para aumentar a produtividade e reduzir gargalos.
+
+Aplicamos metodologias de BPM (Business Process Management) para redesenhar fluxos, integrar equipes e implementar rotinas eficientes.
+
+Treinamos sua equipe para operar os novos processos com segurança e foco em resultados.`,
+      image: "/explore-bg.png",
     }
   ];
 
@@ -65,7 +84,7 @@ const ExploreDetails = () => {
     }
 
     setActiveFeature(newIndex);
-    
+
     // Simular transição sem GSAP no mobile
     setTimeout(() => {
       setIsTransitioning(false);
@@ -106,7 +125,7 @@ const ExploreDetails = () => {
     // Se clicou no botão já ativo, fecha ele
     if (index === activeFeature) {
       setIsTransitioning(true);
-      
+
       const tl = gsap.timeline({
         onComplete: () => {
           setActiveFeature(-1);
@@ -120,7 +139,7 @@ const ExploreDetails = () => {
 
     // Se clicou em um botão diferente
     setIsTransitioning(true);
-    
+
     const tl = gsap.timeline({
       onComplete: () => {
         setActiveFeature(index);
@@ -157,7 +176,7 @@ const ExploreDetails = () => {
 
     setIsTransitioning(true);
     resetButtonToInactive(activeFeature);
-    
+
     const tl = gsap.timeline({
       onComplete: () => {
         setActiveFeature(-1);
@@ -241,11 +260,10 @@ const ExploreDetails = () => {
                       key={feature.id}
                       ref={(el) => { (buttonsRef.current[index] = el) }}
                       onClick={() => handleFeatureChange(index)}
-                      className={`text-left flex flex-col transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] ${
-                        activeFeature === index
+                      className={`text-left flex flex-col transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] ${activeFeature === index
                           ? "bg-[#1E1E20] rounded-4xl p-6"
                           : "bg-[#1E1E20] hover:bg-[#1E1E20]/70 rounded-4xl px-5 py-4"
-                      }`}
+                        }`}
                       style={{
                         cursor: isTransitioning ? "not-allowed" : "pointer"
                       }}
@@ -263,18 +281,12 @@ const ExploreDetails = () => {
 
                       <div
                         ref={(el) => { (descriptionsRef.current[index] = el) }}
-                        className={`transition-all duration-500 overflow-hidden ${
-                          activeFeature === index
+                        className={`transition-all duration-500 overflow-hidden ${activeFeature === index
                             ? "opacity-100 max-h-[200px] max-w-[300px] mt-4"
                             : "opacity-0 max-h-0 max-w-0"
-                        }`}
+                          }`}
                       >
-                        <p className="text-sm text-white mb-3">{feature.description}</p>
-                        <ul className="mt-3 space-y-1">
-                          {feature.specs.map((spec, i) => (
-                            <li key={i} className="text-xs text-white">• {spec}</li>
-                          ))}
-                        </ul>
+                        <p className="text-sm text-white mb-3 whitespace-pre-line">{feature.description}</p>
                       </div>
                     </button>
                   ))}
@@ -341,11 +353,6 @@ const ExploreDetails = () => {
                   <p className="text-sm text-gray-300 mb-2">
                     {features[activeFeature].description}
                   </p>
-                  <ul className="mt-2 space-y-1">
-                    {features[activeFeature].specs.map((spec, i) => (
-                      <li key={i} className="text-xs text-gray-400">• {spec}</li>
-                    ))}
-                  </ul>
                 </div>
               ) : (
                 <p className="text-gray-400">Toque nas setas para explorar</p>
@@ -373,9 +380,8 @@ const ExploreDetails = () => {
                   }
                 }}
                 disabled={isTransitioning}
-                className={`w-3 h-3 rounded-full transition-colors ${
-                  index === activeFeature ? "bg-white" : "bg-gray-600"
-                } ${isTransitioning ? "opacity-50" : "opacity-100"}`}
+                className={`w-3 h-3 rounded-full transition-colors ${index === activeFeature ? "bg-white" : "bg-gray-600"
+                  } ${isTransitioning ? "opacity-50" : "opacity-100"}`}
               />
             ))}
           </div>

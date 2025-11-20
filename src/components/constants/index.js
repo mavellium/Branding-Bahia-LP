@@ -15,35 +15,29 @@ export const hightlightsSlides = [
   {
     id: 1,
     textLists: [
-      "Enter A17 Pro.",
-      "Game‑changing chip.",
-      "Groundbreaking performance.",
+      "Tráfego qualificado",
+      "Atraímos visitantes prontos para comprar.",,
     ],
     video: highlightFirstVideo,
     videoDuration: 4,
   },
   {
     id: 2,
-    textLists: ["Titanium.", "So strong. So light. So Pro."],
+    textLists: ["Automação inteligente", "Processos para conversão de leads em vendas."],
     video: highlightSecondVideo,
     videoDuration: 5,
   },
   {
     id: 3,
     textLists: [
-      "iPhone 15 Pro Max has the",
-      "longest optical zoom in",
-      "iPhone ever. Far out.",
+      "Crescimento previsível",
+      "Estratégias consistentes que aumentam",
+      "sua receita de forma sustentável."
     ],
     video: highlightThirdVideo,
     videoDuration: 2,
   },
-  {
-    id: 4,
-    textLists: ["All-new Action button.", "What will yours do?."],
-    video: highlightFourthVideo,
-    videoDuration: 3.63,
-  },
+
 ];
 
 export const models = [

@@ -2,12 +2,15 @@ import type { Metadata } from "next";
 import { Albert_Sans } from "next/font/google";
 import "./globals.css";
 
-const albert = Albert_Sans({ subsets: ["latin"] });
+const albert = Albert_Sans({ 
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+});
 
 export const metadata: Metadata = {
-  title: "Mavellium | Especialistas em Landing Pages de Alta Conversão",
+  title: "Branding Bahia - Tráfego, Sites, CRM e Marketing para Saúde",
   description:
-    "Pare de perder dinheiro com anúncios. Criamos landing pages otimizadas (Velocidade, UX e Copy) que diminuem seu Custo por Lead (CPA) e maximizam seu ROI. Peça um diagnóstico.",
+    "Sua parceira em crescimento digital. Oferecemos gestão de Tráfego, SEO+GEO, Marketing para Médicos e Mapeamento de Processos Comerciais (BPM). Peça uma proposta.",
 };
 
 export default function RootLayout({
