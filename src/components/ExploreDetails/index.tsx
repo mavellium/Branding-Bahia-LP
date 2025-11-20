@@ -226,7 +226,7 @@ Treinamos sua equipe para operar os novos processos com segurança e foco em res
     <section className="common-padding bg-[#1D1D1F] py-20 px-6 md:px-12 lg:px-10">
       <div className="screen-max-width">
         <h1 className="text-4xl lg:text-5xl font-bold text-white mb-10">
-          Explore os detalhes.
+          Explore nossas soluções
         </h1>
 
         {/* DESKTOP VERSION */}
