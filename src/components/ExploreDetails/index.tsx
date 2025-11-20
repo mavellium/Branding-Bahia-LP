@@ -237,7 +237,7 @@ const ExploreDetails = () => {
                       ref={(el) => { (descriptionsRef.current[index] = el) }}
                       className={`transition-all duration-500 overflow-hidden ${activeFeature === index
                           ? "opacity-100 max-h-[500px] mt-4"
-                          : "opacity-0 max-h-0"
+                          : "opacity-0 max-h-0 max-w-0 transition-all duration-500"
                         }`}
                     >
                       <p className="text-sm text-white mb-3">{feature.description}</p>
