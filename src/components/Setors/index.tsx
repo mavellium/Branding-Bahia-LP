@@ -170,9 +170,9 @@ export function Setors() {
                       </p>
                       <a
                         href={card.link}
-                        className="text-[#0C8BD2] hover:text-[#0C8BD2]/50 transition-colors duration-200 font-medium"
+                        className="flex justify-center items-center gap-1 text-[#0C8BD2] hover:text-[#0C8BD2]/50 transition-colors duration-200 font-medium"
                       >
-                        Saiba mais
+                        Conheça nossas soluções <ChevronRight className="w-4 h-4 stroke-[2] transition-transform duration-200 group-hover:translate-x-1" />
                       </a>
                     </motion.div>
                   </motion.div>
