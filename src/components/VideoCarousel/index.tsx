@@ -105,10 +105,15 @@ const VideoCarousel = () => {
     const handleProcess = (type: string, i?: number) => {
         switch (type) {
             case "video-end":
+                // CORREÇÃO: Verifica se é o último vídeo disponível
+                const nextVideoId = (i ?? 0) + 1;
+                const isLastAvailableVideo = nextVideoId >= hightlightsSlides.length;
+                
                 setVideo((prev) => ({ 
                     ...prev, 
-                    videoId: (i ?? 0) + 1,
-                    isPlaying: false 
+                    videoId: isLastAvailableVideo ? prev.videoId : nextVideoId,
+                    isLastVideo: isLastAvailableVideo,
+                    isPlaying: !isLastAvailableVideo // Pausa se for o último
                 }));
                 break;
 
@@ -156,7 +161,10 @@ const VideoCarousel = () => {
                                         if (el) videoRef.current[i] = el;
                                     }}
                                     onEnded={() =>
-                                        i !== 3 ? handleProcess("video-end", i) : handleProcess("video-last")
+                                        // CORREÇÃO: Usa o índice real do array
+                                        i !== hightlightsSlides.length - 1 
+                                            ? handleProcess("video-end", i) 
+                                            : handleProcess("video-last")
                                     }
                                     onPlay={() => setVideo((prev) => ({ ...prev, isPlaying: true }))}
                                     onPause={() => {
@@ -191,7 +199,6 @@ const VideoCarousel = () => {
                                 if (el) videoDivRef.current[i] = el;
                             }}
                             onClick={() => {
-                                // Muda para o vídeo clicado e pausa
                                 setVideo(prev => ({ 
                                     ...prev, 
                                     videoId: i, 

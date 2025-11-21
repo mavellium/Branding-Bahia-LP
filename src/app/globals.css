@@ -119,34 +119,36 @@
 }
 
 #showcase {
-        @apply relative;
+  @apply relative;
 
-        .media {
-            @apply relative lg:overflow-hidden;
+  .media {
+    @apply relative lg:overflow-hidden;
 
-            video {
-                @apply w-full object-cover object-center;
-            }
+    video {
+      @apply w-full object-cover object-center;
+    }
 
-            .mask {
-                @apply absolute h-full left-0 top-0 lg:top-0 xl:top-0;
+    .mask {
+      @apply absolute inset-0;
 
-                img {
-                    @apply h-full scale-150 lg:scale-110;
-                    transform: matrix(200, 0, 0, 190, 0, 0);
-                }
+      img {
+        @apply h-full w-full scale-[155];
+        /* máscara começa grande */
+      }
 
-                @media (max-width: 1024px) {
-                    img {
-                        transform: matrix(1, 0, 0, 1, 0, 0);
-                    }
-                }
-            }
+      @media (max-width: 1024px) {
+        img {
+          @apply scale-[1.2];
+          /* mobile fica menor */
         }
+      }
+    }
+  }
 }
 
+
 .smooth-border-transition {
-  transition: 
+  transition:
     border-radius 0.5s cubic-bezier(0.4, 0, 0.2, 1),
     width 0.5s cubic-bezier(0.4, 0, 0.2, 1),
     height 0.5s cubic-bezier(0.4, 0, 0.2, 1),

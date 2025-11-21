@@ -1,13 +1,20 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { EffectCoverflow, Navigation } from "swiper/modules";
 import { Button } from "@/components/ui/button";
 import { Icon } from '@iconify/react';
 import { ChevronRight } from "lucide-react";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { useGSAP } from "@gsap/react";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+
+// Registrar o plugin ScrollTrigger
+if (typeof window !== "undefined") {
+  gsap.registerPlugin(ScrollTrigger);
+}
 
 import "swiper/css";
 import "swiper/css/effect-coverflow";
@@ -45,6 +52,10 @@ export function News() {
   const swiperRef = useRef<any>(null);
   const navigationPrevRef = useRef<HTMLButtonElement>(null);
   const navigationNextRef = useRef<HTMLButtonElement>(null);
+  const sectionRef = useRef<HTMLDivElement>(null);
+  const textContentRef = useRef<HTMLDivElement>(null);
+  const carouselRef = useRef<HTMLDivElement>(null);
+  const hasAnimatedRef = useRef(false);
 
   // Calcular o índice real baseado nos slides originais
   const getRealIndex = (index: number) => {
@@ -61,12 +72,103 @@ export function News() {
     swiperRef.current.slidePrev();
   };
 
+  // Animação GSAP para a seção News - APENAS UMA VEZ
+  useGSAP(() => {
+    if (!sectionRef.current || hasAnimatedRef.current) return;
+
+    // Animação para o conteúdo de texto
+    if (textContentRef.current) {
+      gsap.fromTo(textContentRef.current,
+        {
+          opacity: 0,
+          x: -50,
+        },
+        {
+          opacity: 1,
+          x: 0,
+          duration: 0.8,
+          ease: "power2.out",
+          scrollTrigger: {
+            trigger: textContentRef.current,
+            start: "top 80%",
+            end: "bottom 20%",
+            toggleActions: "play none none none", // Só play uma vez
+            markers: false,
+            onEnter: () => {
+              hasAnimatedRef.current = true;
+            }
+          }
+        }
+      );
+    }
+
+    // Animação para o carrossel
+    if (carouselRef.current) {
+      const slides = carouselRef.current.querySelectorAll('.swiper-slide');
+      
+      gsap.fromTo(slides,
+        {
+          opacity: 0,
+          y: 50,
+          scale: 0.8,
+        },
+        {
+          opacity: 1,
+          y: 0,
+          scale: 1,
+          duration: 0.6,
+          stagger: 0.2,
+          ease: "back.out(1.5)",
+          scrollTrigger: {
+            trigger: carouselRef.current,
+            start: "top 70%",
+            end: "bottom 20%",
+            toggleActions: "play none none none", // Só play uma vez
+            markers: false,
+          }
+        }
+      );
+    }
+
+    // Animação para os botões de navegação
+    const navButtons = [navigationPrevRef.current, navigationNextRef.current].filter(Boolean);
+    if (navButtons.length > 0) {
+      gsap.fromTo(navButtons,
+        {
+          opacity: 0,
+          scale: 0.5,
+        },
+        {
+          opacity: 1,
+          scale: 1,
+          duration: 0.5,
+          stagger: 0.1,
+          ease: "back.out(1.7)",
+          scrollTrigger: {
+            trigger: textContentRef.current,
+            start: "top 70%",
+            end: "bottom 20%",
+            toggleActions: "play none none none", // Só play uma vez
+            markers: false,
+          }
+        }
+      );
+    }
+
+  }, { scope: sectionRef });
+
   return (
-    <section className="w-full bg-black py-16 flex justify-center items-center">
+    <section 
+      ref={sectionRef} 
+      className="w-full bg-black py-16 flex justify-center items-center"
+    >
       <div className="container flex flex-col lg:flex-row gap-12 items-start">
 
         {/* Coluna da Esquerda - Texto */}
-        <div className="lg:w-1/2 space-y-8 px-25 w-full text-center lg:text-start justify-center items-center flex">
+        <div 
+          ref={textContentRef}
+          className="lg:w-1/2 space-y-8 px-25 w-full text-center lg:text-start justify-center items-center flex opacity-0"
+        >
           <div className="space-y-6">
             <h2 className="text-4xl sm:text-3xl font-bold text-white">
               Fique por dentro das novidades
@@ -77,7 +179,7 @@ export function News() {
               <button
                 ref={navigationPrevRef}
                 onClick={goToPrev}
-                className="flex items-center justify-center w-12 h-12 rounded-full bg-[#1E1E20] text-black hover:bg-[#1E1E20]/50 hover:text-white transition-colors duration-300"
+                className="flex items-center justify-center w-12 h-12 rounded-full bg-[#1E1E20] text-black hover:bg-[#1E1E20]/50 hover:text-white transition-colors duration-300 opacity-0"
               >
                 <Icon icon="solar:alt-arrow-left-linear" className="w-6 h-6 text-white" />
               </button>
@@ -85,7 +187,7 @@ export function News() {
               <button
                 ref={navigationNextRef}
                 onClick={goToNext}
-                className="flex items-center justify-center w-12 h-12 rounded-full bg-[#1E1E20] text-black hover:bg-[#1E1E20]/50 hover:text-white transition-colors duration-300"
+                className="flex items-center justify-center w-12 h-12 rounded-full bg-[#1E1E20] text-black hover:bg-[#1E1E20]/50 hover:text-white transition-colors duration-300 opacity-0"
               >
                 <Icon icon="solar:alt-arrow-right-linear" className="w-6 h-6 text-white" />
               </button>
@@ -106,7 +208,7 @@ export function News() {
         </div>
 
         {/* Coluna da Direita - Carrossel */}
-        <div className="w-full max-w-6xl">
+        <div ref={carouselRef} className="w-full max-w-6xl">
           <Swiper
             onSwiper={(swiper) => {
               swiperRef.current = swiper;
@@ -181,7 +283,7 @@ export function News() {
             {slides.map((client, i) => (
               <SwiperSlide
                 key={i}
-                className="w-[280px] md:w-[350px] lg:w-[400px] py-5 px-2.5"
+                className="w-[280px] md:w-[350px] lg:w-[400px] py-5 px-2.5 opacity-0"
               >
                 <Card className="bg-[#1D1D1F] border rounded-3xl shadow-lg/30 p-3 h-[500px] flex flex-col overflow-hidden">
                   {/* Container da imagem quadrada no topo */}

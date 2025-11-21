@@ -16,7 +16,7 @@ export const hightlightsSlides = [
     id: 1,
     textLists: [
       "Tráfego qualificado",
-      "Atraímos visitantes prontos para comprar.",,
+      "Atraímos visitantes prontos para comprar.",
     ],
     video: highlightFirstVideo,
     videoDuration: 4,
@@ -58,12 +58,6 @@ export const models = [
     title: "iPhone 15 Pro in White Titanium",
     color: ["#C9C8C2", "#ffffff", "#C9C8C2"],
     img: whiteImg,
-  },
-  {
-    id: 4,
-    title: "iPhone 15 Pro in Black Titanium",
-    color: ["#454749", "#3b3b3b", "#181819"],
-    img: blackImg,
   },
 ];
 

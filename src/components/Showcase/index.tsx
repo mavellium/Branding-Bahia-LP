@@ -22,7 +22,7 @@ const Showcase = () => {
             const ctx = gsap.context(() => {
                 // Verificar width diretamente no cliente
                 const isTablet = window.innerWidth <= 1024;
-                
+
                 if (!isTablet) {
                     const timeline = gsap.timeline({
                         scrollTrigger: {
@@ -35,7 +35,8 @@ const Showcase = () => {
                     });
 
                     timeline.to(".mask img", {
-                        transform: "scale(1.15)",
+                        scale: 1, // <= o valor final da máscara no desktop
+                        ease: "none"
                     });
                 }
             }, container);

@@ -8,7 +8,14 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay } from "swiper/modules";
 import { ChevronRight } from "lucide-react";
 import "swiper/css";
-import { div } from "framer-motion/client";
+import { useGSAP } from "@gsap/react";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+
+// Registrar o plugin ScrollTrigger
+if (typeof window !== "undefined") {
+  gsap.registerPlugin(ScrollTrigger);
+}
 
 export function Setors() {
   const cards = [
@@ -48,9 +55,11 @@ export function Setors() {
 
   const [activeIndex, setActiveIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(true);
-  const [windowWidth, setWindowWidth] = useState<number>(0); // Inicialize com 0 em vez de null
+  const [windowWidth, setWindowWidth] = useState<number>(0);
   const swiperRef = useRef<any>(null);
   const [isClient, setIsClient] = useState(false);
+  const sectionRef = useRef<HTMLDivElement>(null);
+  const desktopCardsRef = useRef<HTMLDivElement>(null);
 
   // Verifique se está no cliente
   useEffect(() => {
@@ -74,7 +83,6 @@ export function Setors() {
       // Sua inicialização do Swiper aqui
     }
   }, [isClient]);
-
 
   const isMobile = windowWidth !== null && windowWidth < 768;
 
@@ -114,10 +122,81 @@ export function Setors() {
     }
   };
 
+  // Animação GSAP para os cards desktop
+  useGSAP(() => {
+    if (!desktopCardsRef.current || isMobile) return;
+
+    const cards = desktopCardsRef.current.querySelectorAll('.desktop-card');
+    
+    // Configurar estado inicial
+    gsap.set(cards, {
+      opacity: 0,
+      y: 50,
+      scale: 0.9
+    });
+
+    // Animação com ScrollTrigger
+    const animation = gsap.to(cards, {
+      opacity: 1,
+      y: 0,
+      scale: 1,
+      duration: 0.8,
+      stagger: 0.15,
+      ease: "back.out(1.7)",
+      scrollTrigger: {
+        trigger: sectionRef.current,
+        start: "top 70%",
+        end: "bottom 20%",
+        toggleActions: "play none none reverse",
+        markers: false,
+      }
+    });
+
+    return () => {
+      animation.kill();
+      ScrollTrigger.getAll().forEach(trigger => trigger.kill());
+    };
+  }, { dependencies: [isMobile], scope: sectionRef });
+
+  // Animação GSAP para os cards mobile
+  useGSAP(() => {
+    if (!isMobile) return;
+
+    const cards = document.querySelectorAll('.mobile-card');
+    
+    // Configurar estado inicial
+    gsap.set(cards, {
+      opacity: 0,
+      y: 30
+    });
+
+    // Animação com ScrollTrigger
+    const animation = gsap.to(cards, {
+      opacity: 1,
+      y: 0,
+      duration: 0.6,
+      stagger: 0.1,
+      ease: "power2.out",
+      scrollTrigger: {
+        trigger: sectionRef.current,
+        start: "top 70%",
+        end: "bottom 20%",
+        toggleActions: "play none none reverse",
+        markers: false,
+      }
+    });
+
+    return () => {
+      animation.kill();
+      ScrollTrigger.getAll().forEach(trigger => trigger.kill());
+    };
+  }, { dependencies: [isMobile], scope: sectionRef });
+
   return (
     <section
+      ref={sectionRef}
       className="py-20 w-full flex flex-col justify-center items-center bg-black px-4"
-      id="cases"
+      id="setors"
     >
       <div className="container flex flex-col justify-center">
         <h2 className="font-heading ml-5 md:ml-10 lg:ml-20 xl:ml-50 2xl:ml-20 text-start text-2xl sm:text-3xl md:text-2xl font-bold text-white mb-10">
@@ -146,7 +225,7 @@ export function Setors() {
                     onClick={() => setActiveIndex(index)}
                     animate={{ opacity: 1 }}
                     transition={{ duration: 0.2 }}
-                    className="flex flex-col items-center"
+                    className="flex flex-col items-center mobile-card"
                   >
                     {/* 🔧 Card principal mobile ajustado */}
                     <div className="relative overflow-hidden rounded-2xl shadow-md cursor-pointer w-[92vw] max-w-[600px] mx-auto">
@@ -185,7 +264,7 @@ export function Setors() {
         {/* 🟣 DESKTOP */}
         {isClient && !isMobile && (
           <>
-            <div className="flex justify-center flex-wrap gap-6 md:gap-2 relative">
+            <div ref={desktopCardsRef} className="flex justify-center flex-wrap gap-6 md:gap-2 relative">
               {cards.map((card, index) => {
                 const isActive = index === activeIndex;
                 // Use valores padrão seguros enquanto windowWidth é 0
@@ -199,7 +278,7 @@ export function Setors() {
                   <motion.div
                     key={card.id}
                     layout
-                    className="flex flex-col items-center relative"
+                    className="flex flex-col items-center relative desktop-card"
                     transition={{
                       duration: 0.4,
                       ease: [0.4, 0, 0.2, 1],
@@ -312,6 +391,5 @@ export function Setors() {
         </div>
       </div>
     </section>
-    // <div>a</div>
   );
 }

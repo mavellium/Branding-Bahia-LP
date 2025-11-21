@@ -5,6 +5,12 @@ import Image from "next/image";
 import { Button } from "../ui/button";
 import { Icon } from "@iconify/react";
 import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+
+// Registrar o plugin ScrollTrigger
+if (typeof window !== "undefined") {
+  gsap.registerPlugin(ScrollTrigger);
+}
 
 const ExploreDetails = () => {
   const [activeFeature, setActiveFeature] = useState(-1);
@@ -12,6 +18,11 @@ const ExploreDetails = () => {
   const buttonsRef = useRef<(HTMLButtonElement | null)[]>([]);
   const titlesRef = useRef<(HTMLHeadingElement | null)[]>([]);
   const descriptionsRef = useRef<(HTMLDivElement | null)[]>([]);
+  const sectionRef = useRef<HTMLDivElement>(null);
+  const buttonsContainerRef = useRef<HTMLDivElement>(null);
+  const navigationButtonsRef = useRef<HTMLDivElement>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const mobileTextContainerRef = useRef<HTMLDivElement>(null);
 
   const features = [
     {
@@ -25,7 +36,7 @@ const ExploreDetails = () => {
     {
       id: 2,
       title: "Criação de conteúdo",
-        description: `Criamos conteúdos alinhados às estratégias, capazes de atrair os clientes certos para o seu negócio e aumentar as vendas.
+        description: `Criamos conteúdos alinhados às estratégias, capazes de atrair os clientes certos para o seu negócio e aumentar as vendos.
 
                       Produzimos textos, storytelling, vídeos curtos, infográficos, artes e outros formatos de conteúdo.`,
       image: "/explore-bg.png",
@@ -70,6 +81,168 @@ Treinamos sua equipe para operar os novos processos com segurança e foco em res
     }
   ];
 
+  // Funções para mostrar e esconder botões de navegação
+  const showNavigationButtons = () => {
+    if (navigationButtonsRef.current) {
+      gsap.to(navigationButtonsRef.current, {
+        opacity: 1,
+        duration: 0.3,
+        ease: "power2.out"
+      });
+    }
+  };
+
+  const hideNavigationButtons = () => {
+    if (navigationButtonsRef.current) {
+      gsap.to(navigationButtonsRef.current, {
+        opacity: 0,
+        duration: 0.3,
+        ease: "power2.out"
+      });
+    }
+  };
+
+  // Funções para mostrar e esconder botão de fechar
+  const showCloseButton = () => {
+    if (closeButtonRef.current) {
+      gsap.to(closeButtonRef.current, {
+        opacity: 1,
+        duration: 0.3,
+        ease: "power2.out"
+      });
+    }
+  };
+
+  const hideCloseButton = () => {
+    if (closeButtonRef.current) {
+      gsap.to(closeButtonRef.current, {
+        opacity: 0,
+        duration: 0.3,
+        ease: "power2.out"
+      });
+    }
+  };
+
+  // Animação de entrada sequencial partindo do meio
+  useEffect(() => {
+    if (!buttonsContainerRef.current) return;
+
+    const buttons = buttonsContainerRef.current.querySelectorAll('.feature-button');
+    const middleIndex = Math.floor(buttons.length / 2); // Botão do meio (índice 3)
+    
+    // Configurar estado inicial de todos os botões
+    gsap.set(buttons, {
+      opacity: 0,
+      scale: 0.8
+    });
+
+    // Configurar estado inicial dos botões de navegação e fechar
+    if (navigationButtonsRef.current) {
+      gsap.set(navigationButtonsRef.current, {
+        opacity: 0
+      });
+    }
+    if (closeButtonRef.current) {
+      gsap.set(closeButtonRef.current, {
+        opacity: 0
+      });
+    }
+
+    // Criar animação sequencial com ScrollTrigger
+    const animation = gsap.timeline({
+      scrollTrigger: {
+        trigger: sectionRef.current,
+        start: "top 70%",
+        end: "bottom 20%",
+        toggleActions: "play none none reverse",
+        markers: false,
+      }
+    });
+
+    // 1. Primeiro: animar o botão do meio vindo da esquerda
+    animation.fromTo(buttons[middleIndex], 
+      {
+        x: -50,
+        opacity: 0,
+        scale: 0.8
+      },
+      {
+        x: 0,
+        opacity: 1,
+        scale: 1,
+        duration: 0.8,
+        ease: "power2.out"
+      }
+    );
+
+    // 2. Segundo: animar simultaneamente TODOS os botões acima e abaixo do meio
+    // Criar um array com todos os botões exceto o do meio
+    const otherButtons = [];
+    
+    for (let i = 0; i < buttons.length; i++) {
+      if (i !== middleIndex) {
+        otherButtons.push(buttons[i]);
+      }
+    }
+
+    // Animar todos os outros botões simultaneamente
+    animation.fromTo(otherButtons,
+      {
+        opacity: 0,
+        scale: 0.5
+      },
+      {
+        opacity: 1,
+        scale: 1,
+        duration: 0.6,
+        stagger: 0.05, // Pequeno stagger para efeito sutil
+        ease: "back.out(1.5)"
+      },
+      "-=0.3" // Iniciar um pouco antes do término da animação anterior
+    );
+
+    // Cleanup
+    return () => {
+      animation.kill();
+      ScrollTrigger.getAll().forEach(trigger => trigger.kill());
+    };
+  }, []);
+
+  // Função para animação do texto no mobile
+  const animateMobileTextTransition = (newIndex: number) => {
+    if (!mobileTextContainerRef.current) return;
+
+    const tl = gsap.timeline({
+      onComplete: () => {
+        setActiveFeature(newIndex);
+        // Animação de entrada
+        gsap.fromTo(mobileTextContainerRef.current, 
+          {
+            opacity: 0,
+            y: 20
+          },
+          {
+            opacity: 1,
+            y: 0,
+            duration: 0.4,
+            ease: "power2.out",
+            onComplete: () => {
+              setIsTransitioning(false);
+            }
+          }
+        );
+      }
+    });
+
+    // Animação de saída
+    tl.to(mobileTextContainerRef.current, {
+      opacity: 0,
+      y: -20,
+      duration: 0.3,
+      ease: "power2.in"
+    });
+  };
+
   // CORREÇÃO: Função específica para mobile
   const handleMobileNavigation = (direction: 'previous' | 'next') => {
     if (isTransitioning) return;
@@ -83,12 +256,7 @@ Treinamos sua equipe para operar os novos processos com segurança e foco em res
       newIndex = activeFeature === -1 ? features.length - 1 : (activeFeature - 1 + features.length) % features.length;
     }
 
-    setActiveFeature(newIndex);
-
-    // Simular transição sem GSAP no mobile
-    setTimeout(() => {
-      setIsTransitioning(false);
-    }, 300);
+    animateMobileTextTransition(newIndex);
   };
 
   const resetButtonToInactive = (index: number) => {
@@ -122,18 +290,8 @@ Treinamos sua equipe para operar os novos processos com segurança e foco em res
   const handleFeatureChange = (index: number) => {
     if (isTransitioning) return;
 
-    // Se clicou no botão já ativo, fecha ele
+    // Se já está ativo, não faz nada
     if (index === activeFeature) {
-      setIsTransitioning(true);
-
-      const tl = gsap.timeline({
-        onComplete: () => {
-          setActiveFeature(-1);
-          setIsTransitioning(false);
-        }
-      });
-
-      resetButtonToInactive(index);
       return;
     }
 
@@ -144,6 +302,9 @@ Treinamos sua equipe para operar os novos processos com segurança e foco em res
       onComplete: () => {
         setActiveFeature(index);
         setIsTransitioning(false);
+        // Mostrar botões de navegação e fechar quando um botão estiver ativo
+        showNavigationButtons();
+        showCloseButton();
       }
     });
 
@@ -156,7 +317,7 @@ Treinamos sua equipe para operar os novos processos com segurança e foco em res
     if (buttonsRef.current[index]) {
       tl.to(buttonsRef.current[index], {
         scale: 1.05,
-        duration: 0.4,
+        duration: 0.3,
         ease: "back.out(1.7)"
       }, 0.2);
 
@@ -181,6 +342,9 @@ Treinamos sua equipe para operar os novos processos com segurança e foco em res
       onComplete: () => {
         setActiveFeature(-1);
         setIsTransitioning(false);
+        // Esconder botões de navegação e fechar quando fechar o botão ativo
+        hideNavigationButtons();
+        hideCloseButton();
       }
     });
   };
@@ -223,8 +387,8 @@ Treinamos sua equipe para operar os novos processos com segurança e foco em res
   }, []);
 
   return (
-    <section className="common-padding bg-[#1D1D1F] py-20 px-6 md:px-12 lg:px-10">
-      <div className="screen-max-width">
+    <section ref={sectionRef} className="common-padding bg-[#1D1D1F] py-20 px-6 md:px-12 lg:px-10">
+      <div className="mx-auto relative max-w-[1520px]">
         <h1 className="text-4xl lg:text-5xl font-bold text-white mb-10">
           Explore nossas soluções
         </h1>
@@ -232,7 +396,7 @@ Treinamos sua equipe para operar os novos processos com segurança e foco em res
         {/* DESKTOP VERSION */}
         <div className="hidden lg:flex flex-row gap-8 items-center bg-black rounded-4xl p-10">
           <div className="flex items-center gap-4 w-1/4">
-            <div className="flex flex-col gap-4 mt-2">
+            <div ref={navigationButtonsRef} className="flex flex-col gap-4 mt-2 opacity-0">
               <Button
                 onClick={handlePrevious}
                 className="w-10 h-10 flex items-center justify-center rounded-full bg-[#1E1E20] hover:bg-[#1E1E20]/80 transition-colors"
@@ -254,13 +418,13 @@ Treinamos sua equipe para operar os novos processos com segurança e foco em res
 
             <div className="flex-1">
               <div className="sticky top-24">
-                <div className="flex-col space-y-4">
+                <div ref={buttonsContainerRef} className="flex-col space-y-4">
                   {features.map((feature, index) => (
                     <button
                       key={feature.id}
                       ref={(el) => { (buttonsRef.current[index] = el) }}
                       onClick={() => handleFeatureChange(index)}
-                      className={`text-left flex flex-col transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] ${activeFeature === index
+                      className={`feature-button text-left flex flex-col transition-all duration-400 ease-[cubic-bezier(0.4,0,0.2,1)] ${activeFeature === index
                           ? "bg-[#1E1E20] rounded-4xl p-6"
                           : "bg-[#1E1E20] hover:bg-[#1E1E20]/70 rounded-4xl px-5 py-4"
                         }`}
@@ -281,7 +445,7 @@ Treinamos sua equipe para operar os novos processos com segurança e foco em res
 
                       <div
                         ref={(el) => { (descriptionsRef.current[index] = el) }}
-                        className={`transition-all duration-500 overflow-hidden ${activeFeature === index
+                        className={`transition-all duration-400 overflow-hidden ${activeFeature === index
                             ? "opacity-100 max-h-[200px] max-w-[300px] mt-4"
                             : "opacity-0 max-h-0 max-w-0"
                           }`}
@@ -296,16 +460,15 @@ Treinamos sua equipe para operar os novos processos com segurança e foco em res
           </div>
 
           <div className="w-3/4 relative">
-            {activeFeature >= 0 && (
-              <Button
-                onClick={handleCloseFeature}
-                className="absolute top-2 right-2 z-10 w-8 h-8 flex items-center justify-center rounded-full bg-[#1E1E20] hover:bg-[#1E1E20]/70 transition-colors"
-              >
-                <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </Button>
-            )}
+            <Button
+              ref={closeButtonRef}
+              onClick={handleCloseFeature}
+              className="absolute top-2 right-2 z-10 w-8 h-8 flex items-center justify-center rounded-full bg-[#1E1E20] hover:bg-[#1E1E20]/70 transition-colors opacity-0"
+            >
+              <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </Button>
 
             <div className="rounded-3xl overflow-hidden">
               <div className="aspect-video relative bg-black">
@@ -320,7 +483,7 @@ Treinamos sua equipe para operar os novos processos com segurança e foco em res
           </div>
         </div>
 
-        {/* MOBILE/TABLET VERSION - CORRIGIDA */}
+        {/* MOBILE/TABLET VERSION - COM ANIMAÇÃO DE TEXTO */}
         <div className="lg:hidden bg-black rounded-4xl p-6">
           <div className="rounded-3xl overflow-hidden mb-6">
             <div className="aspect-video relative bg-black">
@@ -344,7 +507,10 @@ Treinamos sua equipe para operar os novos processos com segurança e foco em res
               </svg>
             </Button>
 
-            <div className="flex-1 text-center min-h-[80px] flex items-center justify-center px-2">
+            <div 
+              ref={mobileTextContainerRef}
+              className="flex-1 text-center min-h-[80px] flex items-center justify-center px-2"
+            >
               {activeFeature >= 0 ? (
                 <div className="w-full">
                   <h3 className="font-semibold text-lg text-white mb-2">
@@ -376,7 +542,9 @@ Treinamos sua equipe para operar os novos processos com segurança e foco em res
                 key={index}
                 onClick={() => {
                   if (!isTransitioning) {
-                    setActiveFeature(index);
+                    // Para cliques diretos nos dots, usar animação também
+                    setIsTransitioning(true);
+                    animateMobileTextTransition(index);
                   }
                 }}
                 disabled={isTransitioning}
