@@ -17,42 +17,18 @@ if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
 }
 
-export function Setors() {
-  const cards = [
-    {
-      id: 1,
-      image: "/Setor-1.png",
-      link: "/Servicos/Institucional",
-      title: "Desenvolvemos estratégias para fortalecer sua presença digital, gerar confiança e posicionar você como referência na sua área.",
-      description:
-        "Conteúdo Personalizado + SEO = Mais Pacientes",
-    },
-    {
-      id: 2,
-      image: "/Setor-2.png",
-      link: "/Servicos/LandingPage",
-      title: "Desenvolvemos estratégias para fortalecer sua presença digital, gerar confiança e posicionar você como referência na sua área.",
-      description:
-        "Conteúdo Personalizado + SEO = Mais Pacientes",
-    },
-    {
-      id: 3,
-      image: "/Setor-3.png",
-      link: "/Servicos/Ecommerce",
-      title: "Desenvolvemos estratégias para fortalecer sua presença digital, gerar confiança e posicionar você como referência na sua área.",
-      description:
-        "Conteúdo Personalizado + SEO = Mais Pacientes",
-    },
-    {
-      id: 4,
-      image: "/Setor-4.png",
-      link: "/Servicos/Aplicativo",
-      title: "Desenvolvemos estratégias para fortalecer sua presença digital, gerar confiança e posicionar você como referência na sua área.",
-      description:
-        "Conteúdo Personalizado + SEO = Mais Pacientes",
-    },
-  ];
+interface SetorCard {
+  id: number;
+  image: string;
+  link: string;
+  title: string;
+  description: string;
+}
 
+export function Setors() {
+  const [cards, setCards] = useState<SetorCard[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [activeIndex, setActiveIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(true);
   const [windowWidth, setWindowWidth] = useState<number>(0);
@@ -60,6 +36,35 @@ export function Setors() {
   const [isClient, setIsClient] = useState(false);
   const sectionRef = useRef<HTMLDivElement>(null);
   const desktopCardsRef = useRef<HTMLDivElement>(null);
+
+  // Buscar dados da API
+  useEffect(() => {
+    const fetchSetors = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch('/api/setors');
+
+        if (!response.ok) {
+          throw new Error(`Erro ${response.status}: ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        if (Array.isArray(data) && data.length > 0 && Array.isArray(data[0].values)) {
+          setCards(data[0].values);
+        } else {
+          setError("Formato de dados inválido na API.");
+        }
+        setError(null);
+      } catch (err) {
+        console.error('Erro ao buscar dados dos setores:', err);
+        setError('Erro ao carregar os setores. Tente novamente mais tarde.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSetors();
+  }, []);
 
   // Verifique se está no cliente
   useEffect(() => {
@@ -88,7 +93,7 @@ export function Setors() {
 
   useEffect(() => {
     // autoplay apenas no desktop
-    if (isMobile || !isPlaying) return;
+    if (isMobile || !isPlaying || cards.length === 0) return;
 
     const interval = setInterval(() => {
       setActiveIndex((prev) => (prev + 1) % cards.length);
@@ -99,7 +104,7 @@ export function Setors() {
 
   // controla o autoplay do Swiper no mobile
   useEffect(() => {
-    if (!swiperRef.current) return;
+    if (!swiperRef.current || cards.length === 0) return;
 
     if (isMobile) {
       if (isPlaying) {
@@ -108,7 +113,7 @@ export function Setors() {
         swiperRef.current.autoplay?.stop();
       }
     }
-  }, [isMobile, isPlaying]);
+  }, [isMobile, isPlaying, cards.length]);
 
   const goToSlide = (index: number) => {
     if (isMobile) {
@@ -124,19 +129,19 @@ export function Setors() {
 
   // Animação GSAP para os cards desktop
   useGSAP(() => {
-    if (!desktopCardsRef.current || isMobile) return;
+    if (!desktopCardsRef.current || isMobile || cards.length === 0) return;
 
-    const cards = desktopCardsRef.current.querySelectorAll('.desktop-card');
-    
+    const cardsElements = desktopCardsRef.current.querySelectorAll('.desktop-card');
+
     // Configurar estado inicial
-    gsap.set(cards, {
+    gsap.set(cardsElements, {
       opacity: 0,
       y: 50,
       scale: 0.9
     });
 
     // Animação com ScrollTrigger
-    const animation = gsap.to(cards, {
+    const animation = gsap.to(cardsElements, {
       opacity: 1,
       y: 0,
       scale: 1,
@@ -156,22 +161,22 @@ export function Setors() {
       animation.kill();
       ScrollTrigger.getAll().forEach(trigger => trigger.kill());
     };
-  }, { dependencies: [isMobile], scope: sectionRef });
+  }, { dependencies: [isMobile, cards.length], scope: sectionRef });
 
   // Animação GSAP para os cards mobile
   useGSAP(() => {
-    if (!isMobile) return;
+    if (!isMobile || cards.length === 0) return;
 
-    const cards = document.querySelectorAll('.mobile-card');
-    
+    const cardsElements = document.querySelectorAll('.mobile-card');
+
     // Configurar estado inicial
-    gsap.set(cards, {
+    gsap.set(cardsElements, {
       opacity: 0,
       y: 30
     });
 
     // Animação com ScrollTrigger
-    const animation = gsap.to(cards, {
+    const animation = gsap.to(cardsElements, {
       opacity: 1,
       y: 0,
       duration: 0.6,
@@ -190,7 +195,44 @@ export function Setors() {
       animation.kill();
       ScrollTrigger.getAll().forEach(trigger => trigger.kill());
     };
-  }, { dependencies: [isMobile], scope: sectionRef });
+  }, { dependencies: [isMobile, cards.length], scope: sectionRef });
+
+  // Estados de loading e error
+  if (loading) {
+    return (
+      <section className="py-20 w-full flex flex-col justify-center items-center bg-black px-4">
+        <div className="container flex flex-col justify-center items-center">
+          <div className="text-white text-lg">Carregando setores...</div>
+        </div>
+      </section>
+    );
+  }
+
+  if (error) {
+    return (
+      <section className="py-20 w-full flex flex-col justify-center items-center bg-black px-4">
+        <div className="container flex flex-col justify-center items-center">
+          <div className="text-red-500 text-lg mb-4">{error}</div>
+          <Button
+            onClick={() => window.location.reload()}
+            className="bg-[#0C8BD2] hover:bg-[#0C8BD2]/80"
+          >
+            Tentar Novamente
+          </Button>
+        </div>
+      </section>
+    );
+  }
+
+  if (cards.length === 0) {
+    return (
+      <section className="py-20 w-full flex flex-col justify-center items-center bg-black px-4">
+        <div className="container flex flex-col justify-center items-center">
+          <div className="text-white text-lg">Nenhum setor encontrado.</div>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section
@@ -220,7 +262,7 @@ export function Setors() {
               className="w-full"
             >
               {cards.map((card, index) => (
-                <SwiperSlide key={card.id} className="overflow-visible">
+                <SwiperSlide key={index} className="overflow-visible">
                   <motion.div
                     onClick={() => setActiveIndex(index)}
                     animate={{ opacity: 1 }}
@@ -231,6 +273,7 @@ export function Setors() {
                     <div className="relative overflow-hidden rounded-2xl shadow-md cursor-pointer w-[92vw] max-w-[600px] mx-auto">
                       <img
                         src={card.image}
+                        alt={card.title}
                         className="object-cover object-center w-full h-[340px] sm:h-[360px] rounded-2xl"
                       />
                     </div>
@@ -276,7 +319,7 @@ export function Setors() {
 
                 return (
                   <motion.div
-                    key={card.id}
+                    key={index}
                     layout
                     className="flex flex-col items-center relative desktop-card"
                     transition={{
@@ -310,6 +353,7 @@ export function Setors() {
                         }}
                       />
                       <motion.div
+                        key={index}
                         layout
                         className={`absolute inset-0 flex justify-center items-center text-white ${isActive ? "bg-black/20" : "bg-black/50"
                           }`}
@@ -368,8 +412,8 @@ export function Setors() {
                 key={index}
                 onClick={() => goToSlide(index)}
                 className={`h-1 rounded-full transition-all duration-300 ${index === activeIndex
-                    ? "bg-white w-8 h-2"  // Ativo - preto e largura maior
-                    : "bg-[#ACACAC] w-2 h-2 hover:bg-black"  // Inativos
+                  ? "bg-white w-8 h-2"  // Ativo - preto e largura maior
+                  : "bg-[#ACACAC] w-2 h-2 hover:bg-black"  // Inativos
                   }`}
               ></button>
             ))}

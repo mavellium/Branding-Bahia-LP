@@ -1,7 +1,17 @@
-import type { NextConfig } from "next";
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  images: {
+    domains: ['mavellium.com.br'],
+    // Ou use remotePatterns para mais controle (versões mais recentes do Next.js)
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'mavellium.com.br',
+        port: '',
+        pathname: '/uploads_bahia/**',
+      },
+    ],
+  },
+}
 
-const nextConfig: NextConfig = {
-  /* config options here */
-};
-
-export default nextConfig;
+module.exports = nextConfig

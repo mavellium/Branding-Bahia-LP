@@ -20,34 +20,25 @@ import "swiper/css";
 import "swiper/css/effect-coverflow";
 import "swiper/css/navigation";
 
+interface NewsItem {
+  name: string;
+  role: string;
+  avatar: string;
+  content: string;
+  fallback: string;
+}
+
+interface ApiResponse {
+  id: string;
+  type: string;
+  values: NewsItem[];
+  createdAt: string;
+}
+
 export function News() {
-  const originalSlides = [
-    {
-      name: "Como aparecer na busca orgânica do Google:",
-      role: "SEO - Otimização dos mecanismos de pesquisa",
-      avatar: "https://randomuser.me/api/portraits/men/32.jpg",
-      fallback: "DC",
-      content: "Leia aqui"
-    },
-    {
-      name: "Como aparecer na busca orgânica do Google:",
-      role: "SEO - Otimização dos mecanismos de pesquisa",
-      avatar: "https://randomuser.me/api/portraits/men/32.jpg",
-      fallback: "DC",
-      content: "Leia aqui"
-    },
-    {
-      name: "Como aparecer na busca orgânica do Google:",
-      role: "SEO - Otimização dos mecanismos de pesquisa",
-      avatar: "https://randomuser.me/api/portraits/men/44.jpg",
-      fallback: "DZ",
-      content: "Leia aqui"
-    },
-  ];
-
-  // Duplicar os slides para garantir que o loop funcione
-  const slides = [...originalSlides, ...originalSlides, ...originalSlides];
-
+  const [newsData, setNewsData] = useState<NewsItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [activeIndex, setActiveIndex] = useState(0);
   const swiperRef = useRef<any>(null);
   const navigationPrevRef = useRef<HTMLButtonElement>(null);
@@ -57,24 +48,58 @@ export function News() {
   const carouselRef = useRef<HTMLDivElement>(null);
   const hasAnimatedRef = useRef(false);
 
+  // Buscar dados da API
+  useEffect(() => {
+    const fetchNews = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch('/api/news');
+        
+        if (!response.ok) {
+          throw new Error(`Erro ${response.status}: ${response.statusText}`);
+        }
+        
+        const data: ApiResponse[] = await response.json();
+        
+        // Transformar os dados da API
+        const allNews: NewsItem[] = data.flatMap(item => item.values);
+        
+        setNewsData(allNews);
+        setError(null);
+      } catch (err) {
+        console.error('Erro ao buscar dados das notícias:', err);
+        setError('Erro ao carregar as notícias. Tente novamente mais tarde.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchNews();
+  }, []);
+
+  // Duplicar os slides para garantir que o loop funcione (apenas se houver dados)
+  const slides = newsData.length > 0 
+    ? [...newsData, ...newsData, ...newsData]
+    : [];
+
   // Calcular o índice real baseado nos slides originais
   const getRealIndex = (index: number) => {
-    return index % originalSlides.length;
+    return newsData.length > 0 ? index % newsData.length : 0;
   };
 
   const goToNext = () => {
-    if (!swiperRef.current) return;
+    if (!swiperRef.current || newsData.length === 0) return;
     swiperRef.current.slideNext();
   };
 
   const goToPrev = () => {
-    if (!swiperRef.current) return;
+    if (!swiperRef.current || newsData.length === 0) return;
     swiperRef.current.slidePrev();
   };
 
   // Animação GSAP para a seção News - APENAS UMA VEZ
   useGSAP(() => {
-    if (!sectionRef.current || hasAnimatedRef.current) return;
+    if (!sectionRef.current || hasAnimatedRef.current || newsData.length === 0) return;
 
     // Animação para o conteúdo de texto
     if (textContentRef.current) {
@@ -155,7 +180,52 @@ export function News() {
       );
     }
 
-  }, { scope: sectionRef });
+  }, { scope: sectionRef, dependencies: [newsData.length] });
+
+  // Estados de loading e error
+  if (loading) {
+    return (
+      <section className="w-full bg-black py-16 flex justify-center items-center">
+        <div className="container flex flex-col lg:flex-row gap-12 items-start">
+          <div className="text-white text-center w-full py-10">
+            Carregando notícias...
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  if (error) {
+    return (
+      <section className="w-full bg-black py-16 flex justify-center items-center">
+        <div className="container flex flex-col lg:flex-row gap-12 items-start">
+          <div className="text-red-500 text-center mb-4 w-full">
+            {error}
+          </div>
+          <div className="text-center w-full">
+            <Button 
+              onClick={() => window.location.reload()}
+              className="bg-[#0C8BD2] hover:bg-[#0C8BD2]/80"
+            >
+              Tentar Novamente
+            </Button>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  if (newsData.length === 0) {
+    return (
+      <section className="w-full bg-black py-16 flex justify-center items-center">
+        <div className="container flex flex-col lg:flex-row gap-12 items-start">
+          <div className="text-white text-center w-full py-10">
+            Nenhuma notícia encontrada.
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section 
@@ -180,6 +250,7 @@ export function News() {
                 ref={navigationPrevRef}
                 onClick={goToPrev}
                 className="flex items-center justify-center w-12 h-12 rounded-full bg-[#1E1E20] text-black hover:bg-[#1E1E20]/50 hover:text-white transition-colors duration-300 opacity-0"
+                disabled={newsData.length === 0}
               >
                 <Icon icon="solar:alt-arrow-left-linear" className="w-6 h-6 text-white" />
               </button>
@@ -188,6 +259,7 @@ export function News() {
                 ref={navigationNextRef}
                 onClick={goToNext}
                 className="flex items-center justify-center w-12 h-12 rounded-full bg-[#1E1E20] text-black hover:bg-[#1E1E20]/50 hover:text-white transition-colors duration-300 opacity-0"
+                disabled={newsData.length === 0}
               >
                 <Icon icon="solar:alt-arrow-right-linear" className="w-6 h-6 text-white" />
               </button>
@@ -224,7 +296,7 @@ export function News() {
             centeredSlides={true}
             slidesPerView={2}
             spaceBetween={30}
-            loop={true}
+            loop={newsData.length > 0}
             speed={600}
             navigation={{
               prevEl: navigationPrevRef.current,
@@ -289,9 +361,13 @@ export function News() {
                   {/* Container da imagem quadrada no topo */}
                   <div className="w-full h-48 bg-gray-300 rounded-3xl overflow-hidden">
                     <img
-                      src={client.avatar}
+                      src={client.avatar || "https://placehold.co/600x400"}
                       alt={client.name}
                       className="w-full h-full object-cover"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.src = "https://placehold.co/600x400";
+                      }}
                     />
                   </div>
 
@@ -312,7 +388,7 @@ export function News() {
                     {/* Conteúdo do depoimento */}
                     <CardContent className="p-0 flex-1 flex items-center">
                       <p className="text-[#09A7FF] text-base leading-relaxed text-start flex items-center gap-1 w-full">
-                        {client.content} <ChevronRight className="w-4 h-4 stroke-[2] transition-transform duration-200 group-hover:translate-x-1" />
+                        {client.content || "Leia mais"} <ChevronRight className="w-4 h-4 stroke-[2] transition-transform duration-200 group-hover:translate-x-1" />
                       </p>
                     </CardContent>
                   </div>

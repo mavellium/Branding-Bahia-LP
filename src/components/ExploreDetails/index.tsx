@@ -12,9 +12,26 @@ if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
 }
 
+interface Feature {
+  id: string;
+  title: string;
+  description: string;
+  image: string;
+}
+
+interface ApiResponse {
+  id: string;
+  type: string;
+  values: Feature[];
+  createdAt: string;
+}
+
 const ExploreDetails = () => {
   const [activeFeature, setActiveFeature] = useState(-1);
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const [features, setFeatures] = useState<Feature[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const buttonsRef = useRef<(HTMLButtonElement | null)[]>([]);
   const titlesRef = useRef<(HTMLHeadingElement | null)[]>([]);
   const descriptionsRef = useRef<(HTMLDivElement | null)[]>([]);
@@ -24,62 +41,41 @@ const ExploreDetails = () => {
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const mobileTextContainerRef = useRef<HTMLDivElement>(null);
 
-  const features = [
-    {
-      id: 1,
-      title: "Tráfego Pago",
-      description: `Anúncios no Meta Ads (Facebook, Instagram e WhatsApp), Google Ads, LinkedIn Ads, TikTok Ads, Kwai Ads e Native Advertising.
+  // Buscar dados da API
+  useEffect(() => {
+    const fetchFeatures = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch('/api/details');
+        
+        if (!response.ok) {
+          throw new Error(`Erro ${response.status}: ${response.statusText}`);
+        }
+        
+        const data: ApiResponse[] = await response.json();
+        
+        // Transformar os dados da API para o formato esperado pelo componente
+        const formattedFeatures: Feature[] = data.flatMap((item: ApiResponse) => 
+          item.values.map((value, index) => ({
+            id: `${item.id}-${index}`,
+            title: value.title,
+            description: value.description,
+            image: value.image
+          }))
+        );
 
-      Desenvolvemos campanhas de mídia paga nas principais plataformas do mercado, como Google, Meta, TikTok, Kwai e muito mais, sempre focadas em gerar resultados reais para o seu negócio.`,
-      image: "/explore-bg.png"
-    },
-    {
-      id: 2,
-      title: "Criação de conteúdo",
-        description: `Criamos conteúdos alinhados às estratégias, capazes de atrair os clientes certos para o seu negócio e aumentar as vendos.
+        setFeatures(formattedFeatures);
+        setError(null);
+      } catch (err) {
+        console.error('Erro ao buscar dados dos detalhes:', err);
+        setError('Erro ao carregar os detalhes. Tente novamente mais tarde.');
+      } finally {
+        setLoading(false);
+      }
+    };
 
-                      Produzimos textos, storytelling, vídeos curtos, infográficos, artes e outros formatos de conteúdo.`,
-      image: "/explore-bg.png",
-    },
-    {
-      id: 3,
-      title: "Criação de sites",
-      description: "Criamos a página ideal para o seu objetivo de negócio, de acordo com sua identidade visual e público-alvo.",
-      image: "/explore-bg.png",
-    },
-    {
-      id: 4,
-      title: "WhatsApp Automatizado",
-      description: `Automatizamos o atendimento da sua empresa com chatbots inteligentes para WhatsApp, Instagram, site e outras redes sociais.
-
-Criamos soluções personalizadas com IA para responder mensagens, captar leads e integrar seus canais de comunicação, economizando tempo e aumentando resultados.`,
-      image: "/explore-bg.png",
-    },
-    {
-      id: 5,
-      title: "CRM - Implantação e suporte",
-      description: `Integramos o CRM aos canais de atendimento e automação, garantindo uma experiência de relacionamento centralizada, com dados unificados e gestão inteligente dos contatos.`,
-      image: "/explore-bg.png",
-    },
-    {
-      id: 6,
-      title: "Otimização de SEO e GEO",
-      description: `Fazemos sua marca aparecer no topo das buscas do Google e nas respostas das IAs generativas.
-
-Usamos estratégias de SEO (Search Engine Optimization) e GEO (Generative Engine Optimization) para aumentar sua visibilidade tanto nos mecanismos de busca tradicionais quanto nas novas plataformas de Inteligência Artificial, como ChatGPT, Gemini, Copilot e Perplexity.`,
-      image: "/explore-bg.png",
-    },
-    {
-      id: 7,
-      title: "BPM",
-      description: `Mapeamos e otimizamos seus processos de venda para aumentar a produtividade e reduzir gargalos.
-
-Aplicamos metodologias de BPM (Business Process Management) para redesenhar fluxos, integrar equipes e implementar rotinas eficientes.
-
-Treinamos sua equipe para operar os novos processos com segurança e foco em resultados.`,
-      image: "/explore-bg.png",
-    }
-  ];
+    fetchFeatures();
+  }, []);
 
   // Funções para mostrar e esconder botões de navegação
   const showNavigationButtons = () => {
@@ -125,10 +121,10 @@ Treinamos sua equipe para operar os novos processos com segurança e foco em res
 
   // Animação de entrada sequencial partindo do meio
   useEffect(() => {
-    if (!buttonsContainerRef.current) return;
+    if (!buttonsContainerRef.current || features.length === 0) return;
 
     const buttons = buttonsContainerRef.current.querySelectorAll('.feature-button');
-    const middleIndex = Math.floor(buttons.length / 2); // Botão do meio (índice 3)
+    const middleIndex = Math.floor(buttons.length / 2);
     
     // Configurar estado inicial de todos os botões
     gsap.set(buttons, {
@@ -176,7 +172,6 @@ Treinamos sua equipe para operar os novos processos com segurança e foco em res
     );
 
     // 2. Segundo: animar simultaneamente TODOS os botões acima e abaixo do meio
-    // Criar um array com todos os botões exceto o do meio
     const otherButtons = [];
     
     for (let i = 0; i < buttons.length; i++) {
@@ -195,10 +190,10 @@ Treinamos sua equipe para operar os novos processos com segurança e foco em res
         opacity: 1,
         scale: 1,
         duration: 0.6,
-        stagger: 0.05, // Pequeno stagger para efeito sutil
+        stagger: 0.05,
         ease: "back.out(1.5)"
       },
-      "-=0.3" // Iniciar um pouco antes do término da animação anterior
+      "-=0.3"
     );
 
     // Cleanup
@@ -206,7 +201,7 @@ Treinamos sua equipe para operar os novos processos com segurança e foco em res
       animation.kill();
       ScrollTrigger.getAll().forEach(trigger => trigger.kill());
     };
-  }, []);
+  }, [features.length]);
 
   // Função para animação do texto no mobile
   const animateMobileTextTransition = (newIndex: number) => {
@@ -243,9 +238,9 @@ Treinamos sua equipe para operar os novos processos com segurança e foco em res
     });
   };
 
-  // CORREÇÃO: Função específica para mobile
+  // Função específica para mobile
   const handleMobileNavigation = (direction: 'previous' | 'next') => {
-    if (isTransitioning) return;
+    if (isTransitioning || features.length === 0) return;
 
     setIsTransitioning(true);
 
@@ -288,7 +283,7 @@ Treinamos sua equipe para operar os novos processos com segurança e foco em res
   };
 
   const handleFeatureChange = (index: number) => {
-    if (isTransitioning) return;
+    if (isTransitioning || features.length === 0) return;
 
     // Se já está ativo, não faz nada
     if (index === activeFeature) {
@@ -333,7 +328,7 @@ Treinamos sua equipe para operar os novos processos com segurança e foco em res
   };
 
   const handleCloseFeature = () => {
-    if (activeFeature === -1 || isTransitioning) return;
+    if (activeFeature === -1 || isTransitioning || features.length === 0) return;
 
     setIsTransitioning(true);
     resetButtonToInactive(activeFeature);
@@ -350,6 +345,8 @@ Treinamos sua equipe para operar os novos processos com segurança e foco em res
   };
 
   const handlePrevious = () => {
+    if (features.length === 0) return;
+
     const newIndex =
       activeFeature === -1
         ? features.length - 1
@@ -361,6 +358,8 @@ Treinamos sua equipe para operar os novos processos com segurança e foco em res
   };
 
   const handleNext = () => {
+    if (features.length === 0) return;
+
     const newIndex =
       activeFeature === -1
         ? 0
@@ -384,7 +383,55 @@ Treinamos sua equipe para operar os novos processos com segurança e foco em res
         });
       }
     });
-  }, []);
+  }, [features.length]);
+
+  // Estados de loading e error
+  if (loading) {
+    return (
+      <section className="common-padding bg-[#1D1D1F] py-20 px-6 md:px-12 lg:px-10">
+        <div className="mx-auto relative max-w-[1520px]">
+          <h1 className="text-4xl lg:text-5xl font-bold text-white mb-10">
+            Explore nossas soluções
+          </h1>
+          <div className="text-white text-center py-10">Carregando detalhes...</div>
+        </div>
+      </section>
+    );
+  }
+
+  if (error) {
+    return (
+      <section className="common-padding bg-[#1D1D1F] py-20 px-6 md:px-12 lg:px-10">
+        <div className="mx-auto relative max-w-[1520px]">
+          <h1 className="text-4xl lg:text-5xl font-bold text-white mb-10">
+            Explore nossas soluções
+          </h1>
+          <div className="text-red-500 text-center mb-4">{error}</div>
+          <div className="text-center">
+            <Button 
+              onClick={() => window.location.reload()}
+              className="bg-[#0C8BD2] hover:bg-[#0C8BD2]/80"
+            >
+              Tentar Novamente
+            </Button>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  if (features.length === 0) {
+    return (
+      <section className="common-padding bg-[#1D1D1F] py-20 px-6 md:px-12 lg:px-10">
+        <div className="mx-auto relative max-w-[1520px]">
+          <h1 className="text-4xl lg:text-5xl font-bold text-white mb-10">
+            Explore nossas soluções
+          </h1>
+          <div className="text-white text-center py-10">Nenhum detalhe encontrado.</div>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section ref={sectionRef} className="common-padding bg-[#1D1D1F] py-20 px-6 md:px-12 lg:px-10">
@@ -474,9 +521,14 @@ Treinamos sua equipe para operar os novos processos com segurança e foco em res
               <div className="aspect-video relative bg-black">
                 <Image
                   src={activeFeature >= 0 ? features[activeFeature].image : "/explore-bg.png"}
-                  alt="Feature"
+                  alt={activeFeature >= 0 ? features[activeFeature].title : "Feature"}
                   fill
                   className="object-cover"
+                  onError={(e) => {
+                    // Fallback para imagem quebrada
+                    const target = e.target as HTMLImageElement;
+                    target.src = "/explore-bg.png";
+                  }}
                 />
               </div>
             </div>
@@ -492,6 +544,12 @@ Treinamos sua equipe para operar os novos processos com segurança e foco em res
                 alt={activeFeature >= 0 ? features[activeFeature].title : "Feature"}
                 fill
                 className="object-cover"
+                unoptimized
+                onError={(e) => {
+                  // Fallback para imagem quebrada
+                  const target = e.target as HTMLImageElement;
+                  target.src = "/explore-bg.png";
+                }}
               />
             </div>
           </div>
@@ -542,7 +600,6 @@ Treinamos sua equipe para operar os novos processos com segurança e foco em res
                 key={index}
                 onClick={() => {
                   if (!isTransitioning) {
-                    // Para cliques diretos nos dots, usar animação também
                     setIsTransitioning(true);
                     animateMobileTextTransition(index);
                   }

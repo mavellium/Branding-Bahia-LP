@@ -1,44 +1,97 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
-const faqData = [
-  {
-    question: "Nossos serviços são padronizados?",
-    answer: "Não. Nossa estratégia é 100% personalizada com base no diagnóstico do seu negócio."
-  },
-  {
-    question: "Qual o prazo para ver resultados?",
-    answer: "Resultados variam, mas nosso foco é otimizar o funil para que você veja retorno sobre o investimento o mais rápido possível."
-  },
-  {
-    question: "Minha empresa é muito pequena, vocês atendem?",
-    answer: "Sim! Atendemos pequenas e médias empresas que buscam crescimento real."
-  },
-  {
-    question: "Vocês oferecem garantia de resultados?",
-    answer: "Nosso 'skin in the game' é trabalhar em conjunto para alcançar os objetivos. O resultado é construído com base na estratégia e execução em parceria. (Se houver garantia formal, insira aqui)."
-  },
-  {
-    question: "Vocês oferecem garantia de resultados?",
-    answer: "Nosso 'skin in the game' é trabalhar em conjunto para alcançar os objetivos. O resultado é construído com base na estratégia e execução em parceria. (Se houver garantia formal, insira aqui)."
-  },
-  {
-    question: "Vocês oferecem garantia de resultados?",
-    answer: "Nosso 'skin in the game' é trabalhar em conjunto para alcançar os objetivos. O resultado é construído com base na estratégia e execução em parceria. (Se houver garantia formal, insira aqui)."
-  },
-  {
-    question: "Vocês oferecem garantia de resultados?",
-    answer: "Nosso 'skin in the game' é trabalhar em conjunto para alcançar os objetivos. O resultado é construído com base na estratégia e execução em parceria. (Se houver garantia formal, insira aqui)."
-  }
-];
+interface FaqItem {
+  question: string;
+  answer: string;
+}
+
+interface ApiResponse {
+  id: string;
+  type: string;
+  values: FaqItem[];
+  createdAt: string;
+}
 
 export default function Faqs() {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
+  const [faqData, setFaqData] = useState<FaqItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Buscar dados da API
+  useEffect(() => {
+    const fetchFaqs = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch('/api/faq');;
+        
+        if (!response.ok) {
+          throw new Error(`Erro ${response.status}: ${response.statusText}`);
+        }
+        
+        const data: ApiResponse[] = await response.json();
+        
+        // Transformar os dados da API: extrair todos os itens do array `values` de cada objeto
+        const allFaqs: FaqItem[] = data.flatMap(item => item.values);
+        
+        setFaqData(allFaqs);
+        setError(null);
+      } catch (err) {
+        console.error('Erro ao buscar dados do FAQ:', err);
+        setError('Erro ao carregar as perguntas frequentes. Tente novamente mais tarde.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchFaqs();
+  }, []);
 
   const toggle = (index: number) => {
     setOpenIndex(openIndex === index ? null : index);
   };
+
+  // Estados de loading e error
+  if (loading) {
+    return (
+      <section className="w-full bg-black flex flex-col items-center text-center py-20 px-10">
+        <h1 className="text-3xl mb-8 text-white font-semibold">
+          Perguntas frequentes
+        </h1>
+        <div className="text-white">Carregando...</div>
+      </section>
+    );
+  }
+
+  if (error) {
+    return (
+      <section className="w-full bg-black flex flex-col items-center text-center py-20 px-10">
+        <h1 className="text-3xl mb-8 text-white font-semibold">
+          Perguntas frequentes
+        </h1>
+        <div className="text-red-500 mb-4">{error}</div>
+        <button 
+          onClick={() => window.location.reload()}
+          className="bg-[#0C8BD2] hover:bg-[#0C8BD2]/80 text-white px-4 py-2 rounded"
+        >
+          Tentar Novamente
+        </button>
+      </section>
+    );
+  }
+
+  if (faqData.length === 0) {
+    return (
+      <section className="w-full bg-black flex flex-col items-center text-center py-20 px-10">
+        <h1 className="text-3xl mb-8 text-white font-semibold">
+          Perguntas frequentes
+        </h1>
+        <div className="text-white">Nenhuma pergunta frequente encontrada.</div>
+      </section>
+    );
+  }
 
   return (
     <section className="w-full bg-black flex flex-col items-center text-center py-20 px-10">
