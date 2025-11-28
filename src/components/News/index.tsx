@@ -47,12 +47,15 @@ export function News() {
   const carouselRef = useRef<HTMLDivElement>(null);
   const hasAnimatedRef = useRef(false);
 
-  // Buscar dados da API - CORRIGIDO o endpoint
+  // CORREÇÃO: Buscar dados do endpoint correto
   useEffect(() => {
     const fetchNews = async () => {
       try {
         setLoading(true);
-        const response = await fetch('/api/news'); // CORREÇÃO AQUI
+        console.log('Buscando dados das newsletters...');
+        
+        // CORREÇÃO: Usar o endpoint correto baseado no seu admin
+        const response = await fetch('/api/news');
         
         if (!response.ok) {
           throw new Error(`Erro ${response.status}: ${response.statusText}`);
@@ -62,15 +65,22 @@ export function News() {
         
         console.log('Dados recebidos da API:', data);
         
-        // CORREÇÃO: Verificar se há dados e processar as imagens
-        if (data.length > 0 && data[0].values) {
-          const processedData = data[0].values.map(item => ({
-            ...item,
-            // Garantir que a imagem tenha uma URL válida
-            image: item.image || "/placeholder-news.jpg"
-          }));
+        // CORREÇÃO: Processamento mais robusto dos dados
+        if (data && data.length > 0 && data[0].values) {
+          const processedData = data[0].values
+            .filter(item => item && (item.image || item.title)) // Filtra itens válidos
+            .map(item => ({
+              id: item.id || Math.random().toString(36).substr(2, 9),
+              fallback: item.fallback || "Imagem da newsletter",
+              title: item.title || "Título não disponível",
+              image: getSafeImageUrl(item.image),
+              link: item.link || "#"
+            }));
+          
+          console.log('Dados processados:', processedData);
           setNewsData(processedData);
         } else {
+          console.log('Nenhum dado válido encontrado');
           setNewsData([]);
         }
         
@@ -86,15 +96,8 @@ export function News() {
     fetchNews();
   }, []);
 
-  // Função para tratar erro de imagem - MELHORADA
-  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
-    const target = e.target as HTMLImageElement;
-    target.src = "https://placehold.co/600x400/1a1a1a/ffffff?text=Newsletter";
-    target.alt = "Imagem não disponível";
-  };
-
-  // Função para obter URL segura da imagem - NOVA
-  const getSafeImageUrl = (imageUrl: string) => {
+  // CORREÇÃO: Função melhorada para obter URL segura da imagem
+  const getSafeImageUrl = (imageUrl: string | undefined): string => {
     if (!imageUrl) {
       return "https://placehold.co/600x400/1a1a1a/ffffff?text=Newsletter";
     }
@@ -104,9 +107,10 @@ export function News() {
       return imageUrl;
     }
     
-    // Se a imagem é um caminho relativo, assumir que está na pasta public
+    // CORREÇÃO: Se a imagem é um caminho do servidor
     if (imageUrl.startsWith('/')) {
-      return imageUrl;
+      // Adicionar o domínio se for um caminho absoluto do servidor
+      return `${window.location.origin}${imageUrl}`;
     }
     
     // Se for um blob URL ou data URL
@@ -114,8 +118,35 @@ export function News() {
       return imageUrl;
     }
     
+    // CORREÇÃO: Se for apenas um nome de arquivo, assumir que está na pasta de uploads
+    if (imageUrl.includes('.') && !imageUrl.includes('/')) {
+      return `/uploads/${imageUrl}`;
+    }
+    
     return "https://placehold.co/600x400/1a1a1a/ffffff?text=Newsletter";
   };
+
+  // CORREÇÃO: Função de erro de imagem melhorada
+  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
+    const target = e.target as HTMLImageElement;
+    console.warn('Erro ao carregar imagem:', target.src);
+    target.src = "https://placehold.co/600x400/1a1a1a/ffffff?text=Imagem+Não+Disponível";
+    target.alt = "Imagem não disponível";
+  };
+
+  // CORREÇÃO: Debug para verificar as URLs das imagens
+  useEffect(() => {
+    if (newsData.length > 0) {
+      console.log('URLs das imagens carregadas:');
+      newsData.forEach((news, index) => {
+        console.log(`News ${index + 1}:`, {
+          title: news.title,
+          imageUrl: news.image,
+          fallback: news.fallback
+        });
+      });
+    }
+  }, [newsData]);
 
   // Duplicar os slides para garantir que o loop funcione
   const slides = newsData.length > 0 
@@ -311,7 +342,7 @@ export function News() {
           </div>
         </div>
 
-        {/* Coluna da Direita - Carrossel MELHORADO */}
+        {/* Coluna da Direita - Carrossel */}
         <div ref={carouselRef} className="w-full max-w-6xl">
           <Swiper
             onSwiper={(swiper) => {
@@ -390,11 +421,11 @@ export function News() {
                 className="w-[280px] md:w-[350px] lg:w-[400px] py-5 px-2.5 opacity-0"
               >
                 <Card className="bg-[#1D1D1F] border rounded-3xl shadow-lg/30 p-3 h-[500px] flex flex-col overflow-hidden">
-                  {/* Container da imagem quadrada no topo - MELHORADO */}
+                  {/* Container da imagem quadrada no topo */}
                   <div className="w-full h-48 bg-gray-800 rounded-3xl overflow-hidden">
                     <img
-                      src={getSafeImageUrl(news.image)}
-                      alt={news.fallback || news.title}
+                      src={news.image}
+                      alt={news.fallback}
                       className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
                       onError={handleImageError}
                       loading="lazy"

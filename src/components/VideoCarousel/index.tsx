@@ -271,13 +271,6 @@ const VideoCarousel = ({ highlightsData }: VideoCarouselProps) => {
                                     </p>
                                 ))}
                             </div>
-
-                            {/* Indicador de duração */}
-                            {list.videoDuration && (
-                                <div className="absolute top-4 right-4 z-10 bg-black/50 text-white px-2 py-1 rounded text-sm">
-                                    {list.videoDuration}s
-                                </div>
-                            )}
                         </div>
                     </div>
                 ))}
