@@ -1,5 +1,5 @@
 export async function GET() {
-  const res = await fetch("https://dashboard-brandingbahia.vercel.app/api/form/news", {
+  const res = await fetch("https://dashboard-brandingbahia.vercel.app/api/form/newsletter", {
     cache: "no-store"
   });
 

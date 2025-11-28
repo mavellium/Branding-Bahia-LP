@@ -11,7 +11,6 @@ import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
-// Registrar o plugin ScrollTrigger
 if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
 }
@@ -21,11 +20,11 @@ import "swiper/css/effect-coverflow";
 import "swiper/css/navigation";
 
 interface NewsItem {
-  name: string;
-  role: string;
-  avatar: string;
-  content: string;
+  id?: string;
   fallback: string;
+  title: string;
+  image: string;
+  link: string;
 }
 
 interface ApiResponse {
@@ -48,12 +47,12 @@ export function News() {
   const carouselRef = useRef<HTMLDivElement>(null);
   const hasAnimatedRef = useRef(false);
 
-  // Buscar dados da API
+  // Buscar dados da API - CORRIGIDO o endpoint
   useEffect(() => {
     const fetchNews = async () => {
       try {
         setLoading(true);
-        const response = await fetch('/api/news');
+        const response = await fetch('/api/news'); // CORREÇÃO AQUI
         
         if (!response.ok) {
           throw new Error(`Erro ${response.status}: ${response.statusText}`);
@@ -61,10 +60,20 @@ export function News() {
         
         const data: ApiResponse[] = await response.json();
         
-        // Transformar os dados da API
-        const allNews: NewsItem[] = data.flatMap(item => item.values);
+        console.log('Dados recebidos da API:', data);
         
-        setNewsData(allNews);
+        // CORREÇÃO: Verificar se há dados e processar as imagens
+        if (data.length > 0 && data[0].values) {
+          const processedData = data[0].values.map(item => ({
+            ...item,
+            // Garantir que a imagem tenha uma URL válida
+            image: item.image || "/placeholder-news.jpg"
+          }));
+          setNewsData(processedData);
+        } else {
+          setNewsData([]);
+        }
+        
         setError(null);
       } catch (err) {
         console.error('Erro ao buscar dados das notícias:', err);
@@ -77,15 +86,41 @@ export function News() {
     fetchNews();
   }, []);
 
-  // Duplicar os slides para garantir que o loop funcione (apenas se houver dados)
+  // Função para tratar erro de imagem - MELHORADA
+  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
+    const target = e.target as HTMLImageElement;
+    target.src = "https://placehold.co/600x400/1a1a1a/ffffff?text=Newsletter";
+    target.alt = "Imagem não disponível";
+  };
+
+  // Função para obter URL segura da imagem - NOVA
+  const getSafeImageUrl = (imageUrl: string) => {
+    if (!imageUrl) {
+      return "https://placehold.co/600x400/1a1a1a/ffffff?text=Newsletter";
+    }
+    
+    // Se a imagem é uma URL completa
+    if (imageUrl.startsWith('http')) {
+      return imageUrl;
+    }
+    
+    // Se a imagem é um caminho relativo, assumir que está na pasta public
+    if (imageUrl.startsWith('/')) {
+      return imageUrl;
+    }
+    
+    // Se for um blob URL ou data URL
+    if (imageUrl.startsWith('blob:') || imageUrl.startsWith('data:')) {
+      return imageUrl;
+    }
+    
+    return "https://placehold.co/600x400/1a1a1a/ffffff?text=Newsletter";
+  };
+
+  // Duplicar os slides para garantir que o loop funcione
   const slides = newsData.length > 0 
     ? [...newsData, ...newsData, ...newsData]
     : [];
-
-  // Calcular o índice real baseado nos slides originais
-  const getRealIndex = (index: number) => {
-    return newsData.length > 0 ? index % newsData.length : 0;
-  };
 
   const goToNext = () => {
     if (!swiperRef.current || newsData.length === 0) return;
@@ -97,11 +132,10 @@ export function News() {
     swiperRef.current.slidePrev();
   };
 
-  // Animação GSAP para a seção News - APENAS UMA VEZ
+  // Animação GSAP (mantida igual)
   useGSAP(() => {
     if (!sectionRef.current || hasAnimatedRef.current || newsData.length === 0) return;
 
-    // Animação para o conteúdo de texto
     if (textContentRef.current) {
       gsap.fromTo(textContentRef.current,
         {
@@ -117,7 +151,7 @@ export function News() {
             trigger: textContentRef.current,
             start: "top 80%",
             end: "bottom 20%",
-            toggleActions: "play none none none", // Só play uma vez
+            toggleActions: "play none none none",
             markers: false,
             onEnter: () => {
               hasAnimatedRef.current = true;
@@ -127,7 +161,6 @@ export function News() {
       );
     }
 
-    // Animação para o carrossel
     if (carouselRef.current) {
       const slides = carouselRef.current.querySelectorAll('.swiper-slide');
       
@@ -148,14 +181,13 @@ export function News() {
             trigger: carouselRef.current,
             start: "top 70%",
             end: "bottom 20%",
-            toggleActions: "play none none none", // Só play uma vez
+            toggleActions: "play none none none",
             markers: false,
           }
         }
       );
     }
 
-    // Animação para os botões de navegação
     const navButtons = [navigationPrevRef.current, navigationNextRef.current].filter(Boolean);
     if (navButtons.length > 0) {
       gsap.fromTo(navButtons,
@@ -173,7 +205,7 @@ export function News() {
             trigger: textContentRef.current,
             start: "top 70%",
             end: "bottom 20%",
-            toggleActions: "play none none none", // Só play uma vez
+            toggleActions: "play none none none",
             markers: false,
           }
         }
@@ -188,7 +220,7 @@ export function News() {
       <section className="w-full bg-black py-16 flex justify-center items-center">
         <div className="container flex flex-col lg:flex-row gap-12 items-start">
           <div className="text-white text-center w-full py-10">
-            Carregando notícias...
+            Carregando newsletters...
           </div>
         </div>
       </section>
@@ -220,7 +252,7 @@ export function News() {
       <section className="w-full bg-black py-16 flex justify-center items-center">
         <div className="container flex flex-col lg:flex-row gap-12 items-start">
           <div className="text-white text-center w-full py-10">
-            Nenhuma notícia encontrada.
+            Nenhuma newsletter encontrada.
           </div>
         </div>
       </section>
@@ -237,7 +269,7 @@ export function News() {
         {/* Coluna da Esquerda - Texto */}
         <div 
           ref={textContentRef}
-          className="lg:w-1/2 space-y-8 px-25 w-full text-center lg:text-start justify-center items-center flex opacity-0"
+          className="lg:w-1/2 space-y-8 px-4 lg:px-25 w-full text-center lg:text-start justify-center items-center flex opacity-0"
         >
           <div className="space-y-6">
             <h2 className="text-4xl sm:text-3xl font-bold text-white">
@@ -273,13 +305,13 @@ export function News() {
                 size="lg"
                 className="bg-[#0C8BD2] text-white sm:text-lg md:text-xl cursor-pointer rounded-full hover:bg-[#009e6b] transition"
               >
-                Ler nossos Newslatters
+                Ler nossos Newsletters
               </Button>
             </a>
           </div>
         </div>
 
-        {/* Coluna da Direita - Carrossel */}
+        {/* Coluna da Direita - Carrossel MELHORADO */}
         <div ref={carouselRef} className="w-full max-w-6xl">
           <Swiper
             onSwiper={(swiper) => {
@@ -352,44 +384,48 @@ export function News() {
             }}
             className="w-full"
           >
-            {slides.map((client, i) => (
+            {slides.map((news, i) => (
               <SwiperSlide
-                key={i}
+                key={`${news.id}-${i}`}
                 className="w-[280px] md:w-[350px] lg:w-[400px] py-5 px-2.5 opacity-0"
               >
                 <Card className="bg-[#1D1D1F] border rounded-3xl shadow-lg/30 p-3 h-[500px] flex flex-col overflow-hidden">
-                  {/* Container da imagem quadrada no topo */}
-                  <div className="w-full h-48 bg-gray-300 rounded-3xl overflow-hidden">
+                  {/* Container da imagem quadrada no topo - MELHORADO */}
+                  <div className="w-full h-48 bg-gray-800 rounded-3xl overflow-hidden">
                     <img
-                      src={client.avatar || "https://placehold.co/600x400"}
-                      alt={client.name}
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        const target = e.target as HTMLImageElement;
-                        target.src = "https://placehold.co/600x400";
-                      }}
+                      src={getSafeImageUrl(news.image)}
+                      alt={news.fallback || news.title}
+                      className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
+                      onError={handleImageError}
+                      loading="lazy"
                     />
                   </div>
 
                   {/* Conteúdo abaixo da imagem */}
-                  <div className="flex-1 p-2 flex flex-col text-start">
-                    {/* Nome e cargo centralizados */}
+                  <div className="flex-1 p-4 flex flex-col text-start">
+                    {/* Título */}
                     <CardHeader className="p-0 mb-4 text-start text-white">
                       <div>
-                        <p className="font-semibold text-xl mb-1">
-                          {client.name}
+                        <p className="font-semibold text-xl mb-1 line-clamp-2">
+                          {news.title}
                         </p>
-                        <p className="text-xl font-semibold">
-                          {client.role}
+                        <p className="text-lg text-gray-400">
+                          Newsletter
                         </p>
                       </div>
                     </CardHeader>
 
-                    {/* Conteúdo do depoimento */}
-                    <CardContent className="p-0 flex-1 flex items-center">
-                      <p className="text-[#09A7FF] text-base leading-relaxed text-start flex items-center gap-1 w-full">
-                        {client.content || "Leia mais"} <ChevronRight className="w-4 h-4 stroke-[2] transition-transform duration-200 group-hover:translate-x-1" />
-                      </p>
+                    {/* Link para leitura */}
+                    <CardContent className="p-0 flex-1 flex items-end">
+                      <a 
+                        href={news.link} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="text-[#09A7FF] text-base leading-relaxed text-start flex items-center gap-1 w-full hover:underline group"
+                      >
+                        Leia mais 
+                        <ChevronRight className="w-4 h-4 stroke-[2] transition-transform duration-200 group-hover:translate-x-1" />
+                      </a>
                     </CardContent>
                   </div>
                 </Card>
