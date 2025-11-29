@@ -381,15 +381,19 @@ export function Setors() {
                             maxWidth: 360
                           }}
                         >
-                          <h2 className="text-white text-md md:text-lg font-bold mb-3 leading-relaxed">
+                          <h2 className="text-white text-md md:text-lg font-bold mb-3 leading-relaxed"
+                          style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}>
                             {card.title}
                           </h2>
-                          <p className="text-white text-sm md:text-md mb-3 leading-relaxed">
+
+                          <p className="text-white text-sm md:text-md mb-3 leading-relaxed"
+                          style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}>
+                            
                             {card.description}
                           </p>
                           <a
                             href={card.link}
-                            className="text-[#0C8BD2] none hover:text-[#0C8BD2]/50 transition-colors duration-200 flex items-center gap-1 font-medium"
+                            className="text-[#0C8BD2] hover:text-[#0C8BD2]/50 transition-colors duration-200 flex items-center gap-1 font-medium"
                           >
                             Conheça nossas soluções <ChevronRight className="w-4 h-4 stroke-[2] transition-transform duration-200 group-hover:translate-x-1" />
                           </a>

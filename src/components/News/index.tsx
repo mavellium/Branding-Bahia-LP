@@ -334,7 +334,7 @@ export function News() {
             >
               <Button
                 size="lg"
-                className="bg-[#0C8BD2] text-white sm:text-lg md:text-xl cursor-pointer rounded-full hover:bg-[#009e6b] transition"
+                className="bg-[#0C8BD2] text-white sm:text-lg md:text-xl cursor-pointer rounded-full hover:bg-[#0C8BD2]/50 transition"
               >
                 Ler nossos Newsletters
               </Button>
