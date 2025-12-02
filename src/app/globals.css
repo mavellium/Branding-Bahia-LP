@@ -138,7 +138,7 @@
 
       @media (max-width: 1024px) {
         img {
-          @apply scale-[1.2];
+          @apply scale-[1.1];
           /* mobile fica menor */
         }
       }
