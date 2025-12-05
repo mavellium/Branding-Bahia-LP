@@ -47,29 +47,76 @@ export function News() {
   const carouselRef = useRef<HTMLDivElement>(null);
   const hasAnimatedRef = useRef(false);
 
-  // CORREÇÃO: Buscar dados do endpoint correto
+  // Função para fazer fetch com proxy CORS SEM CACHE
+  const fetchWithCorsProxy = async (url: string) => {
+    // Gerar um timestamp único para evitar cache
+    const timestamp = Date.now();
+    const urlWithNoCache = `${url}${url.includes('?') ? '&' : '?'}_=${timestamp}`;
+    
+    // Lista de proxies CORS públicos (fallback se um falhar)
+    const proxies = [
+      `https://corsproxy.io/?${encodeURIComponent(urlWithNoCache)}`,
+      `https://api.allorigins.win/get?url=${encodeURIComponent(urlWithNoCache)}`,
+      `https://cors-anywhere.herokuapp.com/${urlWithNoCache}`
+    ];
+
+    for (let i = 0; i < proxies.length; i++) {
+      try {
+        console.log(`Tentando proxy ${i + 1}: ${proxies[i]}`);
+        
+        const response = await fetch(proxies[i], {
+          headers: {
+            'Accept': 'application/json',
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache',
+            'Expires': '0'
+          },
+          cache: 'no-store', // Desativa completamente o cache
+        });
+
+        if (!response.ok) {
+          console.log(`Proxy ${i + 1} falhou: ${response.status}`);
+          continue; // Tenta o próximo proxy
+        }
+
+        const data = await response.json();
+        
+        // Diferentes proxies retornam formatos diferentes
+        if (proxies[i].includes('allorigins.win')) {
+          // api.allorigins.win retorna { contents: JSON string }
+          return JSON.parse(data.contents);
+        } else if (proxies[i].includes('corsproxy.io') || proxies[i].includes('cors-anywhere')) {
+          // corsproxy.io e cors-anywhere retornam o JSON diretamente
+          return data;
+        }
+      } catch (err) {
+        console.error(`Erro com proxy ${i + 1}:`, err);
+        // Continua para o próximo proxy
+      }
+    }
+    
+    throw new Error('Todos os proxies CORS falharam');
+  };
+
+  // Buscar dados diretamente da URL com proxy CORS
   useEffect(() => {
     const fetchNews = async () => {
       try {
         setLoading(true);
         console.log('Buscando dados das newsletters...');
         
-        // CORREÇÃO: Usar o endpoint correto baseado no seu admin
-        const response = await fetch('/api/news');
+        const targetUrl = 'https://dashboard-brandingbahia.vercel.app/api/form/newsletter';
+        console.log('Iniciando fetch com proxy CORS para:', targetUrl);
         
-        if (!response.ok) {
-          throw new Error(`Erro ${response.status}: ${response.statusText}`);
-        }
-        
-        const data: ApiResponse[] = await response.json();
+        const data = await fetchWithCorsProxy(targetUrl);
         
         console.log('Dados recebidos da API:', data);
         
-        // CORREÇÃO: Processamento mais robusto dos dados
+        // Processamento dos dados
         if (data && data.length > 0 && data[0].values) {
           const processedData = data[0].values
-            .filter(item => item && (item.image || item.title)) // Filtra itens válidos
-            .map(item => ({
+            .filter((item: { image: any; title: any; }) => item && (item.image || item.title)) // Filtra itens válidos
+            .map((item: { id: any; fallback: any; title: any; image: string | undefined; link: any; }) => ({
               id: item.id || Math.random().toString(36).substr(2, 9),
               fallback: item.fallback || "Imagem da newsletter",
               title: item.title || "Título não disponível",
@@ -96,7 +143,7 @@ export function News() {
     fetchNews();
   }, []);
 
-  // CORREÇÃO: Função melhorada para obter URL segura da imagem
+  // Função para obter URL segura da imagem
   const getSafeImageUrl = (imageUrl: string | undefined): string => {
     if (!imageUrl) {
       return "https://placehold.co/600x400/1a1a1a/ffffff?text=Newsletter";
@@ -107,7 +154,7 @@ export function News() {
       return imageUrl;
     }
     
-    // CORREÇÃO: Se a imagem é um caminho do servidor
+    // Se a imagem é um caminho do servidor
     if (imageUrl.startsWith('/')) {
       // Adicionar o domínio se for um caminho absoluto do servidor
       return `${window.location.origin}${imageUrl}`;
@@ -118,7 +165,7 @@ export function News() {
       return imageUrl;
     }
     
-    // CORREÇÃO: Se for apenas um nome de arquivo, assumir que está na pasta de uploads
+    // Se for apenas um nome de arquivo, assumir que está na pasta de uploads
     if (imageUrl.includes('.') && !imageUrl.includes('/')) {
       return `/uploads/${imageUrl}`;
     }
@@ -126,7 +173,7 @@ export function News() {
     return "https://placehold.co/600x400/1a1a1a/ffffff?text=Newsletter";
   };
 
-  // CORREÇÃO: Função de erro de imagem melhorada
+  // Função de erro de imagem
   const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
     const target = e.target as HTMLImageElement;
     console.warn('Erro ao carregar imagem:', target.src);
@@ -134,7 +181,7 @@ export function News() {
     target.alt = "Imagem não disponível";
   };
 
-  // CORREÇÃO: Debug para verificar as URLs das imagens
+  // Debug para verificar as URLs das imagens
   useEffect(() => {
     if (newsData.length > 0) {
       console.log('URLs das imagens carregadas:');

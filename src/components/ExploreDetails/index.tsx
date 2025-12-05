@@ -41,18 +41,68 @@ const ExploreDetails = () => {
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const mobileTextContainerRef = useRef<HTMLDivElement>(null);
 
-  // Buscar dados da API
+  // Função para fazer fetch com proxy CORS SEM CACHE
+  const fetchWithCorsProxy = async (url: string) => {
+    // Gerar um timestamp único para evitar cache
+    const timestamp = Date.now();
+    const urlWithNoCache = `${url}${url.includes('?') ? '&' : '?'}_=${timestamp}`;
+    
+    // Lista de proxies CORS públicos (fallback se um falhar)
+    const proxies = [
+      `https://corsproxy.io/?${encodeURIComponent(urlWithNoCache)}`,
+      `https://api.allorigins.win/get?url=${encodeURIComponent(urlWithNoCache)}`,
+      `https://cors-anywhere.herokuapp.com/${urlWithNoCache}`
+    ];
+
+    for (let i = 0; i < proxies.length; i++) {
+      try {
+        console.log(`Tentando proxy ${i + 1}: ${proxies[i]}`);
+        
+        const response = await fetch(proxies[i], {
+          headers: {
+            'Accept': 'application/json',
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache',
+            'Expires': '0'
+          },
+          cache: 'no-store', // Desativa completamente o cache
+        });
+
+        if (!response.ok) {
+          console.log(`Proxy ${i + 1} falhou: ${response.status}`);
+          continue; // Tenta o próximo proxy
+        }
+
+        const data = await response.json();
+        
+        // Diferentes proxies retornam formatos diferentes
+        if (proxies[i].includes('allorigins.win')) {
+          // api.allorigins.win retorna { contents: JSON string }
+          return JSON.parse(data.contents);
+        } else if (proxies[i].includes('corsproxy.io') || proxies[i].includes('cors-anywhere')) {
+          // corsproxy.io e cors-anywhere retornam o JSON diretamente
+          return data;
+        }
+      } catch (err) {
+        console.error(`Erro com proxy ${i + 1}:`, err);
+        // Continua para o próximo proxy
+      }
+    }
+    
+    throw new Error('Todos os proxies CORS falharam');
+  };
+
+  // Buscar dados diretamente da URL com proxy CORS
   useEffect(() => {
     const fetchFeatures = async () => {
       try {
         setLoading(true);
-        const response = await fetch('/api/details');
+        const targetUrl = 'https://dashboard-brandingbahia.vercel.app/api/form/details';
+        console.log('Iniciando fetch com proxy CORS para:', targetUrl);
         
-        if (!response.ok) {
-          throw new Error(`Erro ${response.status}: ${response.statusText}`);
-        }
+        const data = await fetchWithCorsProxy(targetUrl);
         
-        const data: ApiResponse[] = await response.json();
+        console.log('Dados recebidos:', data);
         
         // Transformar os dados da API para o formato esperado pelo componente
         const formattedFeatures: Feature[] = data.flatMap((item: ApiResponse) => 
@@ -60,7 +110,8 @@ const ExploreDetails = () => {
             id: `${item.id}-${index}`,
             title: value.title,
             description: value.description,
-            image: value.image
+            // Usar imagem padrão se estiver vazia
+            image: value.image || "/explore-bg.png"
           }))
         );
 

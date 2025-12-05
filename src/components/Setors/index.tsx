@@ -37,20 +37,81 @@ export function Setors() {
   const sectionRef = useRef<HTMLDivElement>(null);
   const desktopCardsRef = useRef<HTMLDivElement>(null);
 
-  // Buscar dados da API
+  // Função para fazer fetch com proxy CORS SEM CACHE
+  const fetchWithCorsProxy = async (url: string) => {
+    // Gerar um timestamp único para evitar cache
+    const timestamp = Date.now();
+    const urlWithNoCache = `${url}${url.includes('?') ? '&' : '?'}_=${timestamp}`;
+    
+    // Lista de proxies CORS públicos (fallback se um falhar)
+    const proxies = [
+      `https://corsproxy.io/?${encodeURIComponent(urlWithNoCache)}`,
+      `https://api.allorigins.win/get?url=${encodeURIComponent(urlWithNoCache)}`,
+      `https://cors-anywhere.herokuapp.com/${urlWithNoCache}`
+    ];
+
+    for (let i = 0; i < proxies.length; i++) {
+      try {
+        console.log(`Tentando proxy ${i + 1}: ${proxies[i]}`);
+        
+        const response = await fetch(proxies[i], {
+          headers: {
+            'Accept': 'application/json',
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache',
+            'Expires': '0'
+          },
+          cache: 'no-store', // Desativa completamente o cache
+        });
+
+        if (!response.ok) {
+          console.log(`Proxy ${i + 1} falhou: ${response.status}`);
+          continue; // Tenta o próximo proxy
+        }
+
+        const data = await response.json();
+        
+        // Diferentes proxies retornam formatos diferentes
+        if (proxies[i].includes('allorigins.win')) {
+          // api.allorigins.win retorna { contents: JSON string }
+          return JSON.parse(data.contents);
+        } else if (proxies[i].includes('corsproxy.io') || proxies[i].includes('cors-anywhere')) {
+          // corsproxy.io e cors-anywhere retornam o JSON diretamente
+          return data;
+        }
+      } catch (err) {
+        console.error(`Erro com proxy ${i + 1}:`, err);
+        // Continua para o próximo proxy
+      }
+    }
+    
+    throw new Error('Todos os proxies CORS falharam');
+  };
+
+  // Buscar dados diretamente da URL com proxy CORS SEM CACHE
   useEffect(() => {
     const fetchSetors = async () => {
       try {
         setLoading(true);
-        const response = await fetch('/api/setors');
-
-        if (!response.ok) {
-          throw new Error(`Erro ${response.status}: ${response.statusText}`);
-        }
-
-        const data = await response.json();
+        const targetUrl = 'https://dashboard-brandingbahia.vercel.app/api/form/setors';
+        
+        console.log('Iniciando fetch com proxy CORS para:', targetUrl);
+        
+        const data = await fetchWithCorsProxy(targetUrl);
+        
+        console.log('Dados recebidos:', data);
+        
+        // Ajustando para a estrutura do JSON fornecido
         if (Array.isArray(data) && data.length > 0 && Array.isArray(data[0].values)) {
-          setCards(data[0].values);
+          // Mapear os dados para o formato esperado
+          const mappedCards = data[0].values.map((item: any, index: number) => ({
+            id: index,
+            image: item.image,
+            link: item.link || "#", // Usar "#" se o link estiver vazio
+            title: item.title,
+            description: item.description
+          }));
+          setCards(mappedCards);
         } else {
           setError("Formato de dados inválido na API.");
         }
