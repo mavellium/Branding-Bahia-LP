@@ -16,16 +16,17 @@ const Showcase = () => {
 
             const mm = gsap.matchMedia();
 
-            mm.add("(min-width: 1025px)", () => {
+            mm.add("(min-width: 1024px)", () => {
                 // Definir o estado inicial da máscara (grande)
                 gsap.set(".mask img", { scale: 2555 });
 
                 const timeline = gsap.timeline({
                     scrollTrigger: {
                         trigger: "#showcase",
-                        start: "top",
-                        end: "bottom top",
-                        scrub: true,
+                        start: "bottom-=200 bottom",
+                        end: "bottom-=100 top",
+                        markers: false,
+                        scrub: 0.5,
                         // toggleActions: "play  reverse",
                         pin: true,
                     },

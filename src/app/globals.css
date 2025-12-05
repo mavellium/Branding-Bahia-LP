@@ -132,7 +132,7 @@
       @apply absolute inset-0;
 
       img {
-        @apply h-full w-full scale-[155];
+        @apply h-full w-full;
         /* máscara começa grande */
       }
 
