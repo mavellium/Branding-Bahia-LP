@@ -76,7 +76,7 @@ export default function Faqs() {
     const fetchFaqs = async () => {
       try {
         setLoading(true);
-        const targetUrl = 'https://dashboard-brandingbahia.vercel.app/api/form/faq';
+        const targetUrl = 'https://dashboard-brandingbahia-production.up.railway.app/api/form/faq';
         console.log('Iniciando fetch com proxy CORS para:', targetUrl);
         
         const data = await fetchWithCorsProxy(targetUrl);

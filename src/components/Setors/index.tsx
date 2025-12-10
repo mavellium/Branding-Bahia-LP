@@ -93,7 +93,7 @@ export function Setors() {
     const fetchSetors = async () => {
       try {
         setLoading(true);
-        const targetUrl = 'https://dashboard-brandingbahia.vercel.app/api/form/setors';
+        const targetUrl = 'https://dashboard-brandingbahia-production.up.railway.app/api/form/setors';
         
         console.log('Iniciando fetch com proxy CORS para:', targetUrl);
         

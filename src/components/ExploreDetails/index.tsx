@@ -97,7 +97,7 @@ const ExploreDetails = () => {
     const fetchFeatures = async () => {
       try {
         setLoading(true);
-        const targetUrl = 'https://dashboard-brandingbahia.vercel.app/api/form/details';
+        const targetUrl = 'https://dashboard-brandingbahia-production.up.railway.app/api/form/details';
         console.log('Iniciando fetch com proxy CORS para:', targetUrl);
         
         const data = await fetchWithCorsProxy(targetUrl);

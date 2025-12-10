@@ -105,7 +105,7 @@ export function News() {
         setLoading(true);
         console.log('Buscando dados das newsletters...');
         
-        const targetUrl = 'https://dashboard-brandingbahia.vercel.app/api/form/newsletter';
+        const targetUrl = 'https://dashboard-brandingbahia-production.up.railway.app/api/form/newsletter';
         console.log('Iniciando fetch com proxy CORS para:', targetUrl);
         
         const data = await fetchWithCorsProxy(targetUrl);
