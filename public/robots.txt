@@ -1,0 +1,14 @@
+# Permite que bots de busca tradicionais indexem o site
+User-agent: *
+Allow: /
+
+# Permite explicitamente o bot da OpenAI (ChatGPT)
+User-agent: GPTBot
+Allow: /
+
+# Permite o Common Crawl (usado para treinar múltiplos modelos de IA)
+User-agent: CCBot
+Allow: /
+
+# Indica a localização do Sitemap para todos os bots
+Sitemap: https://www.brandingbahia.com.br/sitemap.xml

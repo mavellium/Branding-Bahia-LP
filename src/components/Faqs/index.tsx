@@ -1,143 +1,149 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Icon } from '@iconify/react';
+import Script from 'next/script'; // Import essencial para GEO
 
 interface FaqItem {
   question: string;
   answer: string;
 }
 
-interface ApiResponse {
-  id: string;
-  type: string;
-  values: FaqItem[];
-  createdAt: string;
+interface FaqContent {
+  title: string;
+  subtitle: string;
+  questions: FaqItem[];
+  cta: { text: string; link: string };
 }
 
 export default function Faqs() {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
-  const [faqData, setFaqData] = useState<FaqItem[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [content, setContent] = useState<FaqContent | null>(null);
 
-  // Buscar dados da API
   useEffect(() => {
-    const fetchFaqs = async () => {
-      try {
-        setLoading(true);
-        const response = await fetch('/api/faq');;
-        
-        if (!response.ok) {
-          throw new Error(`Erro ${response.status}: ${response.statusText}`);
+    async function fetchFaqs() {
+      const mockData: FaqContent = {
+        title: "Dúvidas.",
+        subtitle: "E respostas.",
+        questions: [
+          {
+            question: "O que é o SEO e GEO que vocês mencionam?",
+            answer: "Fazemos sua marca aparecer no topo do Google (SEO) e ser a resposta recomendada em IAs como ChatGPT e Gemini (GEO). Atuamos para que você seja autoridade máxima onde o cliente busca soluções[cite: 208, 209, 265]."
+          },
+          {
+            question: "Como a IA ajuda no atendimento da minha empresa?",
+            answer: "Implementamos chatbots inteligentes para WhatsApp e redes sociais que qualificam leads e respondem dúvidas 24h por dia, acelerando a conversão e economizando tempo operacional[cite: 203, 224, 261]."
+          },
+          {
+            question: "Como funciona o marketing de autoridade para médicos?",
+            answer: "Criamos estratégias éticas e personalizadas para fortalecer sua presença digital, aumentar a credibilidade e atrair pacientes qualificados via Google e motores de busca por IA[cite: 210, 212, 228, 250]."
+          },
+          {
+            question: "Como o BPM e CRM ajudam meu processo comercial?",
+            answer: "Mapeamos e otimizamos seus processos de venda (BPM) e integramos o CRM para organizar seu funil, garantindo que nenhuma oportunidade seja perdida e a equipe opere com alta produtividade[cite: 213, 215, 229, 269]."
+          }
+        ],
+        cta: {
+          text: "Pronto para escalar? Solicite um diagnóstico estratégico",
+          link: "https://wa.me/55719XXXXXXXX"
         }
-        
-        const data: ApiResponse[] = await response.json();
-        
-        // Transformar os dados da API: extrair todos os itens do array `values` de cada objeto
-        const allFaqs: FaqItem[] = data.flatMap(item => item.values);
-        
-        setFaqData(allFaqs);
-        setError(null);
-      } catch (err) {
-        console.error('Erro ao buscar dados do FAQ:', err);
-        setError('Erro ao carregar as perguntas frequentes. Tente novamente mais tarde.');
-      } finally {
-        setLoading(false);
-      }
-    };
-
+      };
+      setContent(mockData);
+    }
     fetchFaqs();
   }, []);
 
-  const toggle = (index: number) => {
-    setOpenIndex(openIndex === index ? null : index);
+  if (!content) return null;
+
+  // Estrutura de Dados FAQPage para indexação profunda por LLMs
+  const structuredFaqData = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": content.questions.map((item) => ({
+      "@type": "Question",
+      "name": item.question,
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": item.answer
+      }
+    }))
   };
 
-  // Estados de loading e error
-  if (loading) {
-    return (
-      <section className="w-full bg-black flex flex-col items-center text-center py-20 px-10">
-        <h1 className="text-3xl mb-8 text-white font-semibold">
-          Perguntas frequentes
-        </h1>
-        <div className="text-white">Carregando...</div>
-      </section>
-    );
-  }
-
-  if (error) {
-    return (
-      <section className="w-full bg-black flex flex-col items-center text-center py-20 px-10">
-        <h1 className="text-3xl mb-8 text-white font-semibold">
-          Perguntas frequentes
-        </h1>
-        <div className="text-red-500 mb-4">{error}</div>
-        <button 
-          onClick={() => window.location.reload()}
-          className="bg-[#0C8BD2] hover:bg-[#0C8BD2]/80 text-white px-4 py-2 rounded"
-        >
-          Tentar Novamente
-        </button>
-      </section>
-    );
-  }
-
-  if (faqData.length === 0) {
-    return (
-      <section className="w-full bg-black flex flex-col items-center text-center py-20 px-10">
-        <h1 className="text-3xl mb-8 text-white font-semibold">
-          Perguntas frequentes
-        </h1>
-        <div className="text-white">Nenhuma pergunta frequente encontrada.</div>
-      </section>
-    );
-  }
-
   return (
-    <section className="w-full bg-black flex flex-col items-center text-center py-20 px-10">
-      <h1 className="text-3xl mb-8 text-white font-semibold">
-        Perguntas frequentes
-      </h1>
-
-      <div className="flex flex-col w-full max-w-3xl gap-4">
-        {faqData.map((item, index) => (
-          <div
-            key={index}
-            className="bg-[#1D1D1F] rounded-lg cursor-pointer"
-            onClick={() => toggle(index)}
+    <section className="w-full bg-[#000000] py-40 px-6">
+  
+      <Script
+        id="faq-jsonld"
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredFaqData) }}
+      />
+      
+      <div className="max-w-[800px] mx-auto">
+        
+        <div className="mb-24 text-center">
+          <motion.h2 
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, ease: [0.25, 0.1, 0.25, 1] }}
+            className="text-[48px] md:text-[64px] font-semibold text-white tracking-[-0.03em] leading-tight"
           >
-            {/* Pergunta */}
-            <button
-              className="w-full flex justify-between items-center p-4 text-left text-white font-bold"
-              aria-expanded={openIndex === index}
+            {content.title} <br />
+            <span className="text-[#86868b]">{content.subtitle}</span>
+          </motion.h2>
+        </div>
+
+        <div className="border-t border-white/10">
+          {content.questions.map((item, index) => {
+            const isOpen = openIndex === index;
+            return (
+              <article key={index} className="border-b border-white/10 overflow-hidden">
+                <button
+                  onClick={() => setOpenIndex(isOpen ? null : index)}
+                  className="w-full flex justify-between items-center py-8 text-left outline-none group"
+                  aria-expanded={isOpen}
+                >
+                  <span className={`text-xl md:text-2xl font-medium tracking-tight transition-colors duration-500 ${
+                    isOpen ? 'text-white' : 'text-[#f5f5f7] opacity-80 group-hover:opacity-100'
+                  }`}>
+                    {item.question}
+                  </span>
+                  
+                  <div className={`transition-transform duration-500 flex items-center justify-center ${isOpen ? 'rotate-45 text-white' : 'text-[#86868b]'}`}>
+                    <Icon icon="ph:plus-light" className="text-3xl font-light" />
+                  </div>
+                </button>
+
+                <AnimatePresence initial={false}>
+                  {isOpen && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.5, ease: [0.4, 0, 0.2, 1] }}
+                    >
+                      <div className="pb-10 text-[#86868b] text-lg md:text-xl leading-relaxed max-w-[650px] font-normal tracking-tight">
+                        {item.answer}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </article>
+            );
+          })}
+        </div>
+
+        <div className="mt-20 text-center">
+            <a 
+              href={content.cta.link} 
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group inline-flex items-center text-[#0C8BD2] text-xl font-medium hover:underline decoration-1 underline-offset-8 transition-all"
             >
-              <h2>{item.question}</h2>
-
-              <span
-                className={`transition-transform duration-300 ${
-                  openIndex === index ? 'rotate-[-90deg]' : ''
-                }`}
-              >
-                {/* SVG Arrow */}
-                <svg width="10" height="15" viewBox="0 0 10 15">
-                  <path
-                    fillRule="evenodd"
-                    clipRule="evenodd"
-                    d="M7.79282 0.292969L9.20703 1.70718L3.41414 7.50008L9.20703 13.293L7.79282 14.7072L0.585711 7.50008L7.79282 0.292969Z"
-                    fill="#F0F0F0"
-                  />
-                </svg>
-              </span>
-            </button>
-
-            {/* Resposta */}
-            {openIndex === index && (
-              <div className="px-4 pb-4 text-white text-start animate-fadeIn">
-                <p>{item.answer}</p>
-              </div>
-            )}
-          </div>
-        ))}
+              {content.cta.text}
+              <Icon icon="ph:arrow-right-bold" className="ml-2 text-sm transition-transform group-hover:translate-x-2" />
+            </a>
+        </div>
       </div>
     </section>
   );

@@ -1,33 +1,144 @@
+"use client";
+import React, { useEffect, useState } from "react";
+import { motion, useMotionValue, useScroll, useSpring, useTransform } from "framer-motion";
 import { Button } from "../ui/button";
+import { MoveRight, ChevronDown } from "lucide-react";
+import Script from "next/script";
+
+// Declaração da interface para resolver o erro de compilação 
+interface HeroContent {
+    badge: string;
+    headline: {
+        textNormal: string;
+        textAccent: string;
+    };
+    subheadline: string;
+    primaryCta: {
+        text: string;
+        link: string;
+    };
+    secondaryCta: {
+        text: string;
+        link: string;
+    };
+    trustBadge: string;
+}
 
 export function Headline() {
+    const [content, setContent] = useState<HeroContent | null>(null);
+    const mouseX = useMotionValue(0);
+    const mouseY = useMotionValue(0);
+
+    const smoothX = useSpring(mouseX, { stiffness: 150, damping: 30 });
+    const smoothY = useSpring(mouseY, { stiffness: 150, damping: 30 });
+
+    useEffect(() => {
+        async function fetchHero() {
+
+            const mockData: HeroContent = {
+                badge: "Estratégia Digital & Inteligência Artificial em Salvador", 
+                headline: {
+                    textNormal: "Mais tráfego, mais leads", 
+                    textAccent: "e mais vendas." 
+                },
+                subheadline: "Unimos criatividade, tecnologia e IA para transformar sua visibilidade em resultados reais no Google e nas respostas do ChatGPT e Gemini.", 
+                primaryCta: {
+                    text: "Quero Escalar meu Negócio", 
+                    link: "https://wa.me/55719XXXXXXXX"
+                },
+                secondaryCta: {
+                    text: "Ver Nosso Arsenal", 
+                    link: "#Services"
+                },
+                trustBadge: "Consultoria liderada por especialistas com +25 anos de mercado" 
+            };
+            setContent(mockData);
+        }
+        fetchHero();
+    }, []);
+
+    useEffect(() => {
+        const handleMouseMove = (e: MouseEvent) => {
+            const rect = document.getElementById("headline-section")?.getBoundingClientRect();
+            if (rect) {
+                mouseX.set(e.clientX - rect.left);
+                mouseY.set(e.clientY - rect.top);
+            }
+        };
+        window.addEventListener("mousemove", handleMouseMove);
+        return () => window.removeEventListener("mousemove", handleMouseMove);
+    }, [mouseX, mouseY]);
+
+    const { scrollY } = useScroll();
+    const lightOpacity = useTransform(scrollY, [0, 500], [1, 0]);
+
+    if (!content) return null;
+
+    const structuredData = {
+        "@context": "https://schema.org",
+        "@type": "WebPageElement",
+        "name": "Dobra Principal Branding Bahia",
+        "headline": `${content.headline.textNormal} ${content.headline.textAccent}`,
+        "description": content.subheadline
+    };
+
     return (
-        <section className="relative w-full flex flex-col justify-center md:items-start lg:items-center overflow-hidden bg-white h-[70vh] sm:h-[75vh] md:h-[80vh] lg:h-screen py-10">
-            {/* Imagem de fundo */}
-            <div className="absolute inset-0 z-0">
-                <img
-                    src="/headline-bg.png"
-                    alt="Background"
-                    className="w-full h-full object-cover"
-                />
-            </div>
+        <section id="headline-section" className="relative w-full flex flex-col justify-center items-center overflow-hidden bg-[#050505] h-screen px-6">
+            <Script
+                id="hero-jsonld"
+                type="application/ld+json"
+                dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+            />
+            
+            <motion.div 
+                style={{
+                    left: smoothX,
+                    top: smoothY,
+                    opacity: lightOpacity,
+                }}
+                className="absolute w-[600px] h-[600px] bg-[#0C8BD2]/20 blur-[130px] rounded-full z-10 pointer-events-none -translate-x-1/2 -translate-y-1/2" 
+            />
 
-            {/* Efeito de escurecido (gradiente inferior) */}
-            <div className="absolute inset-0 z-10 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-
-            {/* Conteúdo */}
-            <div className="container relative z-20">
-                <div className="sm:max-w-md md:max-w-2xl text-white md:text-left px-10 md:px-5 lg:px-10 space-y-[-8px]">
-                    <h1 className="font-heading font-bold text-[38px] sm:text-[55px] leading-10  sm:leading-6 md:leading-22 md:text-[80px]">
-                        Mais tráfego,
-                        <span className="block text-5xl sm:text-[70px] font-medium leading-14 sm:leading-22 md:leading-20 md:text-[105px]">mais leads</span>
-                    </h1>
-                    <p className="font-heading font-medium tracking-tight text-[17px] sm:leading-5 md:leading-15 sm:text-2xl md:text-4xl">e mais vendas para seu negócio</p>
-
-                    <Button className="w-full max-w-[170px] sm:max-w-[200px] h-9 md:h-12 text-white bg-[#0C8BD2] mt-8 md:mt-5 flex justify-center items-center rounded-full">
-                        <h1 className="text-md font-medium">QUERO MAIS LEADS</h1>
-                    </Button>
+            <div className="container relative z-20 flex flex-col items-center text-center">
+                
+                <div className="mb-6 px-4 py-1 border border-white/10 rounded-full bg-white/5 backdrop-blur-md text-white/80 text-[10px] tracking-[0.3em] uppercase font-medium">
+                    {content.badge}
                 </div>
+
+                <div className="max-w-5xl space-y-6">
+                    <h1 className="font-heading font-bold text-white text-[42px] sm:text-[65px] md:text-[85px] leading-[1] tracking-tighter">
+                        {content.headline.textNormal} <br /> 
+                        <span className="text-[#0C8BD2] drop-shadow-[0_0_25px_rgba(12,139,210,0.5)]">
+                            {content.headline.textAccent}
+                        </span>
+                    </h1>
+                    
+                    <p className="mx-auto max-w-2xl font-light text-white/70 text-lg sm:text-xl md:text-2xl leading-relaxed tracking-tight">
+                        {content.subheadline}
+                    </p>
+                </div>
+
+                <div className="mt-12 flex flex-col sm:flex-row items-center gap-6">
+                    <a href={content.primaryCta.link} target="_blank" rel="noopener noreferrer">
+                        <Button className="group h-16 px-12 text-white bg-[#0C8BD2] hover:bg-[#0C8BD2]/90 transition-all duration-500 rounded-full flex items-center gap-3 shadow-[0_0_40px_rgba(12,139,210,0.3)]">
+                            <span className="text-lg font-semibold tracking-tight uppercase">
+                                {content.primaryCta.text}
+                            </span>
+                            <MoveRight className="w-5 h-5 group-hover:translate-x-2 transition-transform duration-300" />
+                        </Button>
+                    </a>
+
+                    <a href={content.secondaryCta.link}>
+                        <Button variant="ghost" className="h-16 px-8 text-white/50 hover:text-white hover:bg-white/5 rounded-full flex items-center gap-2 transition-all">
+                            <span className="text-sm font-medium uppercase tracking-widest">{content.secondaryCta.text}</span>
+                            <ChevronDown className="w-4 h-4 animate-bounce" />
+                        </Button>
+                    </a>
+                </div>
+                
+                <p className="mt-8 text-white/30 text-xs uppercase tracking-widest font-light">
+                    {content.trustBadge}
+                </p>
             </div>
         </section>
     );
